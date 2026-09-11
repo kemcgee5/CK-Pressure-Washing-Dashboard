@@ -46,15 +46,21 @@
     font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif; -webkit-font-smoothing:antialiased; }
   .wrap{ max-width:1180px; margin:0 auto; padding:32px 28px 64px; }
 
-  header.bar{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
-  .brand-block{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  header.bar{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:2px; }
+  .brand-block{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .brand-logo{ height:28px; max-width:130px; object-fit:contain; border-radius:4px; }
   .brand-block h1{ font-family:"Archivo", sans-serif; font-weight:800; font-size:25px; margin:0; letter-spacing:-0.01em; }
   .brand-block .by{ font-size:12.5px; color:var(--muted); }
   .badge{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
     background:var(--sun-soft); color:var(--sun); padding:3px 9px; border-radius:999px;
     border:1px solid color-mix(in srgb, var(--sun) 35%, transparent); }
   .badge.is-live{ background:var(--water-soft); color:var(--water-ink); border-color:color-mix(in srgb, var(--water) 35%, transparent); }
-  .sub-line{ font-size:13px; color:var(--ink-2); margin:8px 0 24px; }
+
+  .tabs{ display:flex; gap:0; margin:20px 0 22px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .tab-btn{ font-family:"IBM Plex Sans", sans-serif; font-size:13.5px; font-weight:600; color:var(--ink-2);
+    background:transparent; border:none; border-bottom:2px solid transparent; padding:10px 4px; margin-right:22px; cursor:pointer; }
+  .tab-btn:hover{ color:var(--ink); }
+  .tab-btn.active{ color:var(--water); border-bottom-color:var(--water); }
 
   .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:14px; }
   .kpi{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); }
@@ -64,7 +70,7 @@
   .kpi .sub{ font-size:12px; color:var(--muted); margin-top:6px; }
 
   .grid-main{ display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:14px; align-items:stretch; }
-  .card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow); }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow); margin-bottom:14px; }
   .card h2{ font-size:14.5px; font-weight:700; margin:0 0 2px; }
   .card .card-sub{ font-size:12px; color:var(--muted); margin:0 0 14px; }
   .card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
@@ -78,7 +84,7 @@
     font-family:"IBM Plex Mono", monospace; font-size:11.5px; padding:6px 9px; border-radius:6px;
     white-space:nowrap; opacity:0; transform:translate(-50%,-8px); transition:opacity .1s; }
 
-  .lead-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto; }
+  .lead-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; max-height:440px; overflow-y:auto; }
   .lead-list li{ display:flex; flex-direction:column; gap:2px; padding-bottom:9px; border-bottom:1px solid var(--line); }
   .lead-list li:last-child{ border-bottom:none; padding-bottom:0; }
   .lead-addr{ font-size:13.5px; font-weight:600; }
@@ -92,6 +98,7 @@
   form.add-form{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
     background:var(--page); border:1px solid var(--line); border-radius:10px; padding:16px; margin:14px 0 18px; }
   form.add-form.leads-form{ grid-template-columns:repeat(2,1fr); }
+  form.add-form.profile-form{ grid-template-columns:repeat(2,1fr); margin:0; }
   .field{ display:flex; flex-direction:column; gap:5px; }
   .field.span-2{ grid-column:span 2; }
   .field label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); }
@@ -107,14 +114,36 @@
     background:transparent; color:var(--ink-2); border:1px solid var(--line-strong); border-radius:7px; padding:8px 16px; cursor:pointer; }
   .form-error{ grid-column:1 / -1; font-size:12.5px; color:var(--critical); margin:0; }
   .form-hint{ grid-column:1 / -1; font-size:11.5px; color:var(--muted); margin:0; }
+  .form-title{ grid-column:1/-1; font-size:13px; font-weight:700; margin:0 0 2px; color:var(--ink); }
 
-  table#jobs{ width:100%; border-collapse:collapse; }
-  table#jobs th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);
+  .line-items{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+  .line-item-row{ display:grid; grid-template-columns:1fr 64px 84px 78px 26px; gap:8px; align-items:center; }
+  .line-item-row input{ font-family:"IBM Plex Sans", sans-serif; font-size:13px; padding:6px 8px;
+    border:1px solid var(--line-strong); border-radius:6px; background:var(--surface-2); color:var(--ink); width:100%; }
+  .li-amount{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; text-align:right; color:var(--ink-2); white-space:nowrap; }
+  .li-remove{ background:transparent; border:1px solid var(--line-strong); border-radius:6px; color:var(--critical);
+    cursor:pointer; font-size:14px; line-height:1; padding:5px 0; }
+  .line-items-total{ grid-column:1/-1; display:flex; justify-content:flex-end; gap:10px; align-items:baseline;
+    font-size:12.5px; color:var(--muted); padding-top:4px; }
+  .line-items-total b{ font-family:"IBM Plex Mono", monospace; font-size:16px; color:var(--ink); }
+
+  .logo-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .logo-preview{ height:44px; max-width:130px; object-fit:contain; border:1px solid var(--line); border-radius:6px;
+    background:var(--surface-2); padding:4px; }
+
+  .icon-btn{ font-family:"IBM Plex Sans", sans-serif; font-size:11.5px; font-weight:600;
+    background:transparent; border:1px solid var(--line-strong); border-radius:6px; padding:4px 9px; cursor:pointer; color:var(--ink-2); }
+  .icon-btn:hover{ color:var(--ink); border-color:var(--ink-2); }
+  .icon-btn.danger:hover{ color:var(--critical); border-color:var(--critical); }
+  .actions-cell{ display:flex; gap:6px; white-space:nowrap; }
+
+  table#jobs, table#invoices-table{ width:100%; border-collapse:collapse; }
+  table#jobs th, table#invoices-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);
     font-weight:700; padding:0 10px 10px; border-bottom:1px solid var(--line); }
-  table#jobs td{ padding:11px 10px; font-size:13.5px; border-bottom:1px solid var(--line); vertical-align:middle; }
-  table#jobs tr:last-child td{ border-bottom:none; }
-  table#jobs td.money{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  table#jobs td.date{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; color:var(--ink-2); white-space:nowrap; }
+  table#jobs td, table#invoices-table td{ padding:11px 10px; font-size:13.5px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  table#jobs tr:last-child td, table#invoices-table tr:last-child td{ border-bottom:none; }
+  table#jobs td.money, table#invoices-table td.money{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  table#jobs td.date, table#invoices-table td.date{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; color:var(--ink-2); white-space:nowrap; }
   .addr-sub{ font-size:11.5px; color:var(--muted); }
 
   .chip{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:999px; white-space:nowrap; }
@@ -128,20 +157,27 @@
   .chip.interested{ background:var(--good-soft); color:var(--good); }
   .chip.not_interested{ background:var(--critical-soft); color:var(--critical); }
 
-  .photo-thumbs{ display:flex; gap:5px; }
+  .photo-thumbs{ display:flex; gap:5px; flex-wrap:wrap; }
   .photo-thumbs a{ display:block; width:34px; height:34px; border-radius:5px; overflow:hidden; border:1px solid var(--line-strong); }
   .photo-thumbs img{ width:100%; height:100%; object-fit:cover; display:block; }
   .photo-none{ font-size:11.5px; color:var(--muted); }
 
   footer.note{ margin-top:20px; font-size:12px; color:var(--muted); text-align:center; }
 
+  [hidden]{ display:none !important; }
+
   @media (max-width:900px){
     .kpis{ grid-template-columns:repeat(2,1fr); }
     .grid-main{ grid-template-columns:1fr; }
     form.add-form{ grid-template-columns:1fr 1fr; }
+    form.add-form.profile-form{ grid-template-columns:1fr; }
     table#jobs{ display:block; overflow-x:auto; }
   }
-  @media (max-width:520px){ form.add-form{ grid-template-columns:1fr; } .field.span-2{ grid-column:span 1; } }
+  @media (max-width:520px){
+    form.add-form{ grid-template-columns:1fr; }
+    .field.span-2{ grid-column:span 1; }
+    .line-item-row{ grid-template-columns:1fr 46px 64px 56px 22px; }
+  }
 
   /* ---- Sign-in gate ---- */
   .auth-gate{
@@ -168,7 +204,35 @@
     background:transparent; color:var(--ink-2); border:1px solid var(--line-strong); border-radius:7px;
     padding:5px 11px; cursor:pointer;
   }
-  [hidden]{ display:none !important; }
+
+  /* ---- Invoice overlay ---- */
+  .invoice-overlay{ position:fixed; inset:0; background:rgba(18,24,29,0.55); z-index:60;
+    display:flex; align-items:flex-start; justify-content:center; padding:36px 16px; overflow-y:auto; }
+  .invoice-sheet{ background:#fff; color:#12181D; width:100%; max-width:640px; border-radius:10px; padding:36px; box-shadow:var(--shadow); }
+  .invoice-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:26px; }
+  .invoice-brand img{ display:block; max-height:44px; margin-bottom:8px; }
+  .invoice-brand .biz-name{ font-family:"Archivo", sans-serif; font-weight:800; font-size:17px; }
+  .invoice-brand .biz-meta{ font-size:12px; color:#4C5A63; line-height:1.5; margin-top:2px; }
+  .invoice-title{ text-align:right; }
+  .invoice-title h3{ font-family:"Archivo", sans-serif; font-size:22px; margin:0; letter-spacing:0.03em; }
+  .invoice-title .inv-meta{ font-size:12px; color:#4C5A63; margin-top:6px; line-height:1.5; }
+  .invoice-billto{ margin-bottom:22px; font-size:13.5px; }
+  .invoice-billto .label{ font-size:11px; text-transform:uppercase; color:#84939B; letter-spacing:.05em; margin-bottom:4px; }
+  table.invoice-lines{ width:100%; border-collapse:collapse; margin-bottom:18px; }
+  table.invoice-lines th{ text-align:left; font-size:11px; text-transform:uppercase; color:#84939B; border-bottom:1px solid #E4E8EB; padding:0 8px 8px 0; }
+  table.invoice-lines td{ padding:8px 8px 8px 0; font-size:13.5px; border-bottom:1px solid #EEF1F2; }
+  table.invoice-lines td.num{ text-align:right; font-family:"IBM Plex Mono", monospace; white-space:nowrap; }
+  .invoice-total-row{ display:flex; justify-content:flex-end; gap:24px; padding-top:8px; font-size:15px; font-weight:700; }
+  .invoice-status-row{ display:flex; justify-content:flex-end; gap:24px; padding-top:6px; font-size:12.5px; color:#4C5A63; align-items:center; }
+  .invoice-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:28px; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    .invoice-sheet, .invoice-sheet *{ visibility:visible; }
+    .invoice-sheet{ position:absolute; top:0; left:0; width:100%; max-width:none; box-shadow:none; border:none; padding:0; }
+    .invoice-overlay{ position:static; background:none; padding:0; }
+    .no-print{ display:none !important; }
+  }
 </style>
 
 <div id="auth-gate" class="auth-gate" hidden>
@@ -187,31 +251,138 @@
 
   <header class="bar">
     <div class="brand-block">
-      <h1>CK Pressure Washing</h1>
-      <span class="by">Business Dashboard</span>
-      <span class="badge" id="data-badge">Demo · Sample Data</span>
+      <img id="brand-logo" class="brand-logo" alt="" hidden>
+      <h1 id="brand-name">CK Pressure Washing</h1>
+      <span class="badge" id="data-badge">Demo</span>
     </div>
     <div class="who-line" id="who-line" hidden>
       <span id="who-email"></span>
       <button type="button" id="signout-btn" class="btn-signout">Sign out</button>
     </div>
   </header>
-  <p class="sub-line">Jobs, invoicing, and Stonewood Creek neighborhood targeting — replacing the old Sheets/Apps Script version.</p>
 
-  <div class="kpis" id="kpis"></div>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" type="button" data-tab="home">Home</button>
+    <button class="tab-btn" type="button" data-tab="invoices">Invoices</button>
+    <button class="tab-btn" type="button" data-tab="financials">Financials</button>
+    <button class="tab-btn" type="button" data-tab="targeting">Neighborhood Targeting</button>
+  </nav>
 
-  <div class="grid-main">
+  <!-- ============== HOME ============== -->
+  <section class="tab-panel" id="tab-home">
+    <div class="kpis" id="kpis"></div>
+
     <div class="card">
-      <h2>Jobs Completed — Last 8 Weeks</h2>
-      <p class="card-sub">Hover a bar for the exact count.</p>
+      <div class="card-head">
+        <div><h2>Jobs &amp; Invoices</h2><p class="card-sub">Every job, its pricing breakdown, status, and before/after photos.</p></div>
+        <button id="job-add-btn" class="btn-add" type="button">+ Add Job</button>
+      </div>
+      <form id="job-form" class="add-form" hidden>
+        <p class="form-title" id="job-form-title">Add Job</p>
+        <div class="field span-2"><label for="j-client">Client Name</label><input id="j-client" type="text" required></div>
+        <div class="field span-2"><label for="j-address">Address</label><input id="j-address" type="text" required></div>
+        <div class="field">
+          <label for="j-service">Service</label>
+          <select id="j-service">
+            <option>Driveway</option><option>House Wash</option><option>Deck / Patio</option>
+            <option>Roof</option><option>Fence</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label for="j-date">Date</label><input id="j-date" type="date" required></div>
+        <div class="field">
+          <label for="j-status">Status</label>
+          <select id="j-status">
+            <option value="quoted">Quoted</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="completed">Completed</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        <div class="field"></div>
+
+        <div class="field span-2" style="grid-column:1/-1;">
+          <label>Pricing Breakdown</label>
+          <div id="line-items" class="line-items"></div>
+          <div style="margin-top:8px;">
+            <button type="button" id="line-item-add" class="btn-add small">+ Add Line</button>
+          </div>
+          <div class="line-items-total">Total <b id="line-items-total">$0</b></div>
+        </div>
+
+        <div id="existing-photos" class="field span-2" hidden></div>
+        <div class="field"><label for="j-before">Before Photo</label><input id="j-before" type="file" accept="image/*"></div>
+        <div class="field"><label for="j-after">After Photo</label><input id="j-after" type="file" accept="image/*"></div>
+        <div class="field span-2"><label for="j-notes">Notes</label><input id="j-notes" type="text" placeholder="Optional"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Job</button>
+          <button type="button" id="job-cancel" class="btn-cancel">Cancel</button>
+          <span id="job-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
+        </div>
+        <p id="job-error" class="form-error" hidden></p>
+        <p class="form-hint">Photos upload to Supabase Storage automatically — leave either blank if you don't have one yet.</p>
+      </form>
+      <table id="jobs">
+        <thead>
+          <tr><th>Client</th><th>Service</th><th>Date</th><th>Price</th><th>Status</th><th>Photos</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="jobs-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============== INVOICES ============== -->
+  <section class="tab-panel" id="tab-invoices" hidden>
+    <div class="card">
+      <h2>Business Info</h2>
+      <p class="card-sub">Shows up on your invoices and the dashboard header. Only visible to you.</p>
+      <form id="profile-form" class="add-form profile-form">
+        <div class="field"><label for="p-name">Business Name</label><input id="p-name" type="text" placeholder="CK Pressure Washing"></div>
+        <div class="field"><label for="p-phone">Phone</label><input id="p-phone" type="text" placeholder="(770) 555-0134"></div>
+        <div class="field"><label for="p-email">Email</label><input id="p-email" type="email" placeholder="hello@ckpressurewashing.com"></div>
+        <div class="field"><label for="p-address">Address</label><input id="p-address" type="text" placeholder="Dallas, GA"></div>
+        <div class="field span-2">
+          <label>Logo (optional)</label>
+          <div class="logo-row">
+            <img id="p-logo-preview" class="logo-preview" hidden alt="Logo preview">
+            <input id="p-logo" type="file" accept="image/*">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Business Info</button>
+          <span id="profile-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
+        </div>
+        <p id="profile-error" class="form-error" hidden></p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Invoices</h2>
+      <p class="card-sub">Every job as a printable, branded invoice.</p>
+      <table id="invoices-table">
+        <thead><tr><th>Invoice</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <tbody id="invoices-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============== FINANCIALS ============== -->
+  <section class="tab-panel" id="tab-financials" hidden>
+    <div class="kpis" id="fin-kpis"></div>
+    <div class="card">
+      <h2>Revenue — Last 8 Weeks</h2>
+      <p class="card-sub">Completed and paid jobs, by the week they were done. Hover a bar for the exact amount.</p>
       <div class="chart-area">
         <svg id="chart" viewBox="0 0 700 180" preserveAspectRatio="none"></svg>
         <div id="tooltip"></div>
       </div>
     </div>
+  </section>
+
+  <!-- ============== NEIGHBORHOOD TARGETING ============== -->
+  <section class="tab-panel" id="tab-targeting" hidden>
     <div class="card">
       <div class="card-head">
-        <div><h2>Neighborhood Targeting</h2><p class="card-sub">Stonewood Creek prospects.</p></div>
+        <div><h2>Neighborhood Targeting</h2><p class="card-sub">Stonewood Creek prospects and nearby leads.</p></div>
         <button id="lead-add-btn" class="btn-add small" type="button">+ Lead</button>
       </div>
       <form id="lead-form" class="add-form leads-form" hidden>
@@ -236,54 +407,13 @@
       </form>
       <ul class="lead-list" id="lead-list"></ul>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <div><h2>Jobs &amp; Invoices</h2><p class="card-sub">Every job, its price, its status, and before/after photos.</p></div>
-      <button id="job-add-btn" class="btn-add" type="button">+ Add Job</button>
-    </div>
-    <form id="job-form" class="add-form" hidden>
-      <div class="field span-2"><label for="j-client">Client Name</label><input id="j-client" type="text" required></div>
-      <div class="field span-2"><label for="j-address">Address</label><input id="j-address" type="text" required></div>
-      <div class="field">
-        <label for="j-service">Service</label>
-        <select id="j-service">
-          <option>Driveway</option><option>House Wash</option><option>Deck / Patio</option>
-          <option>Roof</option><option>Fence</option><option>Other</option>
-        </select>
-      </div>
-      <div class="field"><label for="j-price">Price ($)</label><input id="j-price" type="number" step="0.01" min="0" required></div>
-      <div class="field"><label for="j-date">Date</label><input id="j-date" type="date" required></div>
-      <div class="field">
-        <label for="j-status">Status</label>
-        <select id="j-status">
-          <option value="quoted">Quoted</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="completed">Completed</option>
-          <option value="paid">Paid</option>
-        </select>
-      </div>
-      <div class="field"><label for="j-before">Before Photo</label><input id="j-before" type="file" accept="image/*"></div>
-      <div class="field"><label for="j-after">After Photo</label><input id="j-after" type="file" accept="image/*"></div>
-      <div class="field span-2"><label for="j-notes">Notes</label><input id="j-notes" type="text" placeholder="Optional"></div>
-      <div class="form-actions">
-        <button type="submit" class="btn-save">Save Job</button>
-        <button type="button" id="job-cancel" class="btn-cancel">Cancel</button>
-        <span id="job-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
-      </div>
-      <p id="job-error" class="form-error" hidden></p>
-      <p class="form-hint">Photos upload to Supabase Storage automatically — leave either blank if you don't have one yet.</p>
-    </form>
-    <table id="jobs">
-      <thead>
-        <tr><th>Client</th><th>Service</th><th>Date</th><th>Price</th><th>Status</th><th>Photos</th></tr>
-      </thead>
-      <tbody id="jobs-body"></tbody>
-    </table>
-  </div>
+  </section>
 
   <footer class="note">CK Pressure Washing LLC — internal tool. Not for external distribution.</footer>
+</div>
+
+<div id="invoice-overlay" class="invoice-overlay" hidden>
+  <div id="invoice-sheet" class="invoice-sheet"></div>
 </div>
 
 <script>
@@ -302,25 +432,30 @@
   }
 
   var currentTenantId = null; // resolved after sign-in, from the "memberships" table
+  var isLive = false;
+  var editingJobId = null;
+  var pendingLogoFile = null;
+  var currentProfile = null;
 
   var STATUS_LABEL = { quoted:"Quoted", scheduled:"Scheduled", completed:"Completed", paid:"Paid" };
   var LEAD_LABEL = { not_contacted:"Not Contacted", contacted:"Contacted", interested:"Interested", scheduled:"Scheduled", not_interested:"Not Interested" };
 
   // ---- Demo fallback data (used until Supabase is connected) ----
   var DEMO_JOBS = [
-    {id:'d1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"Driveway", price:225, job_date:"2026-09-02", status:"paid", photos:[]},
-    {id:'d2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"House Wash", price:410, job_date:"2026-09-05", status:"completed", photos:[]},
-    {id:'d3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"Deck / Patio", price:180, job_date:"2026-09-08", status:"scheduled", photos:[]},
-    {id:'d4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"Roof", price:650, job_date:"2026-09-10", status:"quoted", photos:[]}
+    {id:'d1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"Driveway", price:225, job_date:"2026-09-02", status:"paid", photos:[], line_items:[{description:"Driveway wash", quantity:1, unit_price:225}]},
+    {id:'d2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"House Wash", price:410, job_date:"2026-09-05", status:"completed", photos:[], line_items:[{description:"House wash", quantity:1, unit_price:350},{description:"Gutter brightening", quantity:1, unit_price:60}]},
+    {id:'d3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"Deck / Patio", price:180, job_date:"2026-09-08", status:"scheduled", photos:[], line_items:[{description:"Deck & patio wash", quantity:1, unit_price:180}]},
+    {id:'d4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"Roof", price:650, job_date:"2026-09-10", status:"quoted", photos:[], line_items:[{description:"Roof soft wash", quantity:1, unit_price:650}]}
   ];
   var DEMO_LEADS = [
     {id:'l1', address:"22 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"interested", notes:"Asked for a quote next week"},
     {id:'l2', address:"140 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"contacted", notes:""},
     {id:'l3', address:"9 Millbrook Ct", subdivision:"Millbrook", status:"not_contacted", notes:""}
   ];
-  var DEMO_CHART = [2,3,1,4,3,5,4,6]; // jobs completed, last 8 weeks
+  var DEMO_CHART = [450, 610, 225, 780, 540, 920, 700, 1150]; // revenue, last 8 weeks
+  var DEMO_PROFILE = { business_name:"CK Pressure Washing", phone:"(770) 555-0134", email:"hello@ckpressurewashing.com", address:"Dallas, GA", logo_path:null };
 
-  function fmtMoney(n){ return "$" + Number(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+  function fmtMoney(n){ return "$" + Number(n||0).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}); }
   function fmtDate(s){
     var d = new Date(s + 'T00:00:00');
     return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
@@ -332,7 +467,7 @@
     return x;
   }
 
-  function weeklyBuckets(jobs){
+  function weeklyRevenueBuckets(jobs){
     var today = new Date();
     var thisWeekStart = startOfWeek(today);
     var buckets = new Array(8).fill(0);
@@ -342,7 +477,7 @@
       var weekStart = startOfWeek(jd);
       var weeksAgo = Math.round((thisWeekStart - weekStart) / (7*24*3600*1000));
       var idx = 7 - weeksAgo;
-      if (idx >= 0 && idx < 8) buckets[idx] += 1;
+      if (idx >= 0 && idx < 8) buckets[idx] += Number(j.price);
     });
     return buckets;
   }
@@ -357,6 +492,15 @@
     return { jobsThisWeek: jobsThisWeek, revenuePaid: revenuePaid, outstanding: outstanding, activeLeads: activeLeads };
   }
 
+  function computeFinancials(jobs){
+    var revenuePaid = jobs.filter(function(j){ return j.status==='paid'; }).reduce(function(s,j){ return s+Number(j.price); }, 0);
+    var outstanding = jobs.filter(function(j){ return j.status==='completed'; }).reduce(function(s,j){ return s+Number(j.price); }, 0);
+    var totalJobs = jobs.length;
+    var totalValue = jobs.reduce(function(s,j){ return s+Number(j.price); }, 0);
+    var avg = totalJobs ? (totalValue / totalJobs) : 0;
+    return { revenuePaid: revenuePaid, outstanding: outstanding, totalJobs: totalJobs, avg: avg };
+  }
+
   function renderKPIs(k){
     var el = document.getElementById('kpis');
     el.innerHTML =
@@ -364,6 +508,15 @@
       '<div class="kpi"><p class="label">Revenue (Paid)</p><p class="value">'+fmtMoney(k.revenuePaid)+'</p></div>' +
       '<div class="kpi"><p class="label">Outstanding</p><p class="value'+(k.outstanding>0?' warn':'')+'">'+fmtMoney(k.outstanding)+'</p><p class="sub">'+(k.outstanding>0?'Completed, not yet paid':'All caught up')+'</p></div>' +
       '<div class="kpi"><p class="label">Active Leads</p><p class="value">'+k.activeLeads+'</p><p class="sub">Stonewood Creek &amp; nearby</p></div>';
+  }
+
+  function renderFinancialsKPIs(f){
+    var el = document.getElementById('fin-kpis');
+    el.innerHTML =
+      '<div class="kpi"><p class="label">Revenue (Paid)</p><p class="value">'+fmtMoney(f.revenuePaid)+'</p></div>' +
+      '<div class="kpi"><p class="label">Outstanding</p><p class="value'+(f.outstanding>0?' warn':'')+'">'+fmtMoney(f.outstanding)+'</p></div>' +
+      '<div class="kpi"><p class="label">Total Jobs</p><p class="value">'+f.totalJobs+'</p></div>' +
+      '<div class="kpi"><p class="label">Avg Job Value</p><p class="value">'+fmtMoney(f.avg)+'</p></div>';
   }
 
   function renderChart(buckets){
@@ -398,7 +551,7 @@
         var box = svg.getBoundingClientRect();
         tooltip.style.left = (e.clientX - box.left) + 'px';
         tooltip.style.top = (y / H * box.height) + 'px';
-        tooltip.textContent = labels[i].toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' wk — ' + v + ' job' + (v===1?'':'s');
+        tooltip.textContent = labels[i].toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' wk — ' + fmtMoney(v);
         tooltip.style.opacity = 1;
       });
       rect.addEventListener('mouseleave', function(){ tooltip.style.opacity = 0; });
@@ -419,31 +572,79 @@
     }).join('') + '</div>';
   }
 
+  function getInvoiceItems(job){
+    if (job.line_items && job.line_items.length) return job.line_items;
+    return [{description: job.service_type, quantity:1, unit_price:Number(job.price)}];
+  }
+  function invoiceTotal(job){
+    return getInvoiceItems(job).reduce(function(s,li){ return s + Number(li.quantity)*Number(li.unit_price); }, 0);
+  }
+
   function renderJobs(jobs){
     var el = document.getElementById('jobs-body');
     var sorted = jobs.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
     el.innerHTML = sorted.map(function(j){
+      var actions = isLive
+        ? '<div class="actions-cell">' +
+            '<button class="icon-btn" type="button" data-action="edit" data-id="'+j.id+'">Edit</button>' +
+            '<button class="icon-btn danger" type="button" data-action="delete" data-id="'+j.id+'">Delete</button>' +
+          '</div>'
+        : '';
       return '<tr><td><b>'+j.client_name+'</b><div class="addr-sub">'+j.address+'</div></td>' +
         '<td>'+j.service_type+'</td>' +
         '<td class="date">'+fmtDate(j.job_date)+'</td>' +
         '<td class="money">'+fmtMoney(j.price)+'</td>' +
         '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
-        '<td>'+photoThumbs(j.photos)+'</td></tr>';
+        '<td>'+photoThumbs(j.photos)+'</td>' +
+        '<td>'+actions+'</td></tr>';
+    }).join('');
+  }
+
+  function renderInvoices(jobs){
+    var el = document.getElementById('invoices-body');
+    var sorted = jobs.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
+    el.innerHTML = sorted.map(function(j){
+      return '<tr><td>#'+j.id+'</td>' +
+        '<td><b>'+j.client_name+'</b><div class="addr-sub">'+j.address+'</div></td>' +
+        '<td class="date">'+fmtDate(j.job_date)+'</td>' +
+        '<td class="money">'+fmtMoney(invoiceTotal(j))+'</td>' +
+        '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
+        '<td><button class="btn-add small" type="button" data-action="view-invoice" data-id="'+j.id+'">View</button></td></tr>';
     }).join('');
   }
 
   function renderLeads(leads){
     var el = document.getElementById('lead-list');
+    if (!leads.length){ el.innerHTML = '<li class="photo-none">No leads yet — add your first one above.</li>'; return; }
     el.innerHTML = leads.map(function(l){
       return '<li><span class="lead-addr">'+l.address+'</span>' +
         '<span class="lead-sub"><span>'+(l.subdivision||'')+'</span><span class="chip '+l.status+'">'+LEAD_LABEL[l.status]+'</span></span></li>';
     }).join('');
   }
 
-  function setBadge(isLive){
+  function renderBrand(profile){
+    var logoImg = document.getElementById('brand-logo');
+    var nameEl = document.getElementById('brand-name');
+    if (profile && profile.logo_path){ logoImg.src = profile.logo_path; logoImg.hidden = false; }
+    else { logoImg.hidden = true; }
+    nameEl.textContent = (profile && profile.business_name) ? profile.business_name : 'CK Pressure Washing';
+  }
+
+  function renderProfileForm(profile){
+    currentProfile = profile;
+    document.getElementById('p-name').value = profile ? (profile.business_name||'') : '';
+    document.getElementById('p-phone').value = profile ? (profile.phone||'') : '';
+    document.getElementById('p-email').value = profile ? (profile.email||'') : '';
+    document.getElementById('p-address').value = profile ? (profile.address||'') : '';
+    var preview = document.getElementById('p-logo-preview');
+    if (profile && profile.logo_path){ preview.src = profile.logo_path; preview.hidden = false; }
+    else { preview.hidden = true; }
+  }
+
+  function setBadge(isLiveNow){
     var badge = document.getElementById('data-badge');
-    if (isLive){ badge.textContent = 'Live · Supabase'; badge.classList.add('is-live'); }
-    else { badge.textContent = 'Demo · Sample Data'; badge.classList.remove('is-live'); }
+    if (isLiveNow){ badge.textContent = 'Live'; badge.classList.add('is-live'); }
+    else { badge.textContent = 'Demo'; badge.classList.remove('is-live'); }
   }
 
   async function fetchLive(){
@@ -452,26 +653,32 @@
       var jobsQ = supabaseClient.from('jobs').select('*').order('job_date', {ascending:false});
       var leadsQ = supabaseClient.from('leads').select('*').order('created_at', {ascending:false});
       var photosQ = supabaseClient.from('job_photos').select('*');
-      // Once auth is wired up, currentTenantId is set and every read is scoped to it —
-      // this .eq is belt-and-suspenders on top of the RLS policy, not a substitute for it.
+      var lineItemsQ = supabaseClient.from('job_line_items').select('*').order('sort_order', {ascending:true});
+      var profileQ = supabaseClient.from('business_profile').select('*').maybeSingle();
       if (currentTenantId != null){
         jobsQ = jobsQ.eq('tenant_id', currentTenantId);
         leadsQ = leadsQ.eq('tenant_id', currentTenantId);
         photosQ = photosQ.eq('tenant_id', currentTenantId);
+        lineItemsQ = lineItemsQ.eq('tenant_id', currentTenantId);
+        profileQ = profileQ.eq('tenant_id', currentTenantId);
       }
       var jobsRes = await jobsQ;
       var leadsRes = await leadsQ;
       var photosRes = await photosQ;
-      if (jobsRes.error || leadsRes.error || photosRes.error){
-        console.error('Supabase error:', (jobsRes.error||leadsRes.error||photosRes.error).message);
+      var lineItemsRes = await lineItemsQ;
+      var profileRes = await profileQ;
+      if (jobsRes.error || leadsRes.error || photosRes.error || lineItemsRes.error || profileRes.error){
+        console.error('Supabase error:', (jobsRes.error||leadsRes.error||photosRes.error||lineItemsRes.error||profileRes.error).message);
         return null;
       }
       var photosByJob = {};
-      (photosRes.data||[]).forEach(function(p){
-        (photosByJob[p.job_id] = photosByJob[p.job_id] || []).push(p);
+      (photosRes.data||[]).forEach(function(p){ (photosByJob[p.job_id] = photosByJob[p.job_id] || []).push(p); });
+      var lineItemsByJob = {};
+      (lineItemsRes.data||[]).forEach(function(li){ (lineItemsByJob[li.job_id] = lineItemsByJob[li.job_id] || []).push(li); });
+      var jobs = (jobsRes.data||[]).map(function(j){
+        return Object.assign({}, j, {photos: photosByJob[j.id] || [], line_items: lineItemsByJob[j.id] || []});
       });
-      var jobs = (jobsRes.data||[]).map(function(j){ return Object.assign({}, j, {photos: photosByJob[j.id] || []}); });
-      return { jobs: jobs, leads: leadsRes.data || [] };
+      return { jobs: jobs, leads: leadsRes.data || [], profile: profileRes.data || null };
     } catch(e){ console.error('Supabase fetch failed:', e); return null; }
   }
 
@@ -559,23 +766,123 @@
 
   async function render(){
     var live = await fetchLive();
-    setBadge(!!live);
+    isLive = !!live;
+    setBadge(isLive);
     currentJobs = live ? live.jobs : DEMO_JOBS;
     currentLeads = live ? live.leads : DEMO_LEADS;
+    var profile = live ? live.profile : DEMO_PROFILE;
+    renderBrand(profile);
+    renderProfileForm(profile);
     renderKPIs(computeKPIs(currentJobs, currentLeads));
-    renderChart(live ? weeklyBuckets(currentJobs) : DEMO_CHART);
     renderJobs(currentJobs);
+    renderInvoices(currentJobs);
+    renderFinancialsKPIs(computeFinancials(currentJobs));
+    renderChart(live ? weeklyRevenueBuckets(currentJobs) : DEMO_CHART);
     renderLeads(currentLeads);
   }
 
-  // ---- Add Job form (with optional before/after photo upload) ----
+  // ---- Tabs ----
+  var tabButtons = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+  tabButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabButtons.forEach(function(b){ b.classList.remove('active'); });
+      tabPanels.forEach(function(p){ p.hidden = true; });
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).hidden = false;
+    });
+  });
+
+  // ---- Line item editor (pricing breakdown) ----
+  function updateLineItemsTotal(){
+    var rows = document.querySelectorAll('#line-items .line-item-row');
+    var total = 0;
+    rows.forEach(function(row){
+      var qty = parseFloat(row.querySelector('.li-qty').value) || 0;
+      var price = parseFloat(row.querySelector('.li-price').value) || 0;
+      var amt = qty * price;
+      row.querySelector('.li-amount').textContent = fmtMoney(amt);
+      total += amt;
+    });
+    document.getElementById('line-items-total').textContent = fmtMoney(total);
+  }
+  function addLineItemRow(li){
+    li = li || { description:'', quantity:1, unit_price:0 };
+    var row = document.createElement('div');
+    row.className = 'line-item-row';
+    var desc = (li.description || '').replace(/"/g, '&quot;');
+    row.innerHTML =
+      '<input type="text" class="li-desc" placeholder="Description" value="'+desc+'">' +
+      '<input type="number" class="li-qty" min="0" step="0.01" value="'+(li.quantity!=null?li.quantity:1)+'">' +
+      '<input type="number" class="li-price" min="0" step="0.01" value="'+(li.unit_price!=null?li.unit_price:0)+'">' +
+      '<span class="li-amount">$0</span>' +
+      '<button type="button" class="li-remove" title="Remove line">&times;</button>';
+    document.getElementById('line-items').appendChild(row);
+    row.querySelectorAll('.li-qty, .li-price').forEach(function(inp){ inp.addEventListener('input', updateLineItemsTotal); });
+    row.querySelector('.li-remove').addEventListener('click', function(){ row.remove(); updateLineItemsTotal(); });
+    updateLineItemsTotal();
+  }
+  function renderLineItemRows(items){
+    var el = document.getElementById('line-items');
+    el.innerHTML = '';
+    items.forEach(function(li){ addLineItemRow(li); });
+  }
+  function collectLineItems(){
+    var rows = document.querySelectorAll('#line-items .line-item-row');
+    var items = [];
+    rows.forEach(function(row){
+      var desc = row.querySelector('.li-desc').value.trim();
+      var qty = parseFloat(row.querySelector('.li-qty').value) || 0;
+      var price = parseFloat(row.querySelector('.li-price').value) || 0;
+      if (desc) items.push({ description: desc, quantity: qty, unit_price: price });
+    });
+    return items;
+  }
+  document.getElementById('line-item-add').addEventListener('click', function(){ addLineItemRow(); });
+
+  // ---- Add / Edit Job form ----
   var jobBtn = document.getElementById('job-add-btn');
   var jobForm = document.getElementById('job-form');
   var jobError = document.getElementById('job-error');
   var jobSaving = document.getElementById('job-saving');
 
-  function closeJobForm(){ jobForm.hidden = true; jobForm.reset(); jobBtn.hidden = false; jobError.hidden = true; }
-  jobBtn.addEventListener('click', function(){ jobForm.hidden = false; jobBtn.hidden = true; document.getElementById('j-client').focus(); });
+  function renderExistingPhotos(photos){
+    var wrap = document.getElementById('existing-photos');
+    if (!photos || !photos.length){ wrap.hidden = true; wrap.innerHTML = ''; return; }
+    wrap.hidden = false;
+    wrap.innerHTML = '<label>Existing Photos</label>' + photoThumbs(photos);
+  }
+
+  function openJobFormForAdd(){
+    editingJobId = null;
+    jobForm.hidden = false; jobBtn.hidden = true;
+    document.getElementById('job-form-title').textContent = 'Add Job';
+    jobForm.querySelector('.btn-save').textContent = 'Save Job';
+    renderExistingPhotos(null);
+    renderLineItemRows([{description:'', quantity:1, unit_price:0}]);
+    document.getElementById('j-client').focus();
+  }
+  function openJobFormForEdit(job){
+    editingJobId = job.id;
+    jobForm.hidden = false; jobBtn.hidden = true;
+    document.getElementById('job-form-title').textContent = 'Edit Job — ' + job.client_name;
+    jobForm.querySelector('.btn-save').textContent = 'Update Job';
+    document.getElementById('j-client').value = job.client_name;
+    document.getElementById('j-address').value = job.address;
+    document.getElementById('j-service').value = job.service_type;
+    document.getElementById('j-date').value = job.job_date;
+    document.getElementById('j-status').value = job.status;
+    document.getElementById('j-notes').value = job.notes || '';
+    renderLineItemRows(getInvoiceItems(job));
+    renderExistingPhotos(job.photos);
+  }
+  function closeJobForm(){
+    jobForm.hidden = true; jobForm.reset(); jobBtn.hidden = false; jobError.hidden = true;
+    editingJobId = null;
+    renderExistingPhotos(null);
+  }
+
+  jobBtn.addEventListener('click', openJobFormForAdd);
   document.getElementById('job-cancel').addEventListener('click', closeJobForm);
 
   async function uploadPhoto(file, kind, jobId){
@@ -602,21 +909,45 @@
       jobError.hidden = false;
       return;
     }
+    var items = collectLineItems();
+    if (!items.length){
+      jobError.textContent = 'Add at least one pricing line before saving.';
+      jobError.hidden = false;
+      return;
+    }
+    var total = items.reduce(function(s, li){ return s + Number(li.quantity)*Number(li.unit_price); }, 0);
+
     jobSaving.hidden = false;
     try {
-      var newJob = {
+      var jobFields = {
         tenant_id: currentTenantId,
         client_name: document.getElementById('j-client').value.trim(),
         address: document.getElementById('j-address').value.trim(),
         service_type: document.getElementById('j-service').value,
-        price: parseFloat(document.getElementById('j-price').value),
+        price: total,
         job_date: document.getElementById('j-date').value,
         status: document.getElementById('j-status').value,
         notes: document.getElementById('j-notes').value.trim()
       };
-      var insertRes = await supabaseClient.from('jobs').insert(newJob).select().single();
-      if (insertRes.error) throw new Error(insertRes.error.message);
-      var jobId = insertRes.data.id;
+
+      var jobId;
+      if (editingJobId != null){
+        var updRes = await supabaseClient.from('jobs').update(jobFields).eq('id', editingJobId).select().single();
+        if (updRes.error) throw new Error(updRes.error.message);
+        jobId = editingJobId;
+        var delRes = await supabaseClient.from('job_line_items').delete().eq('job_id', jobId);
+        if (delRes.error) throw new Error(delRes.error.message);
+      } else {
+        var insertRes = await supabaseClient.from('jobs').insert(jobFields).select().single();
+        if (insertRes.error) throw new Error(insertRes.error.message);
+        jobId = insertRes.data.id;
+      }
+
+      var lineRows = items.map(function(li, idx){
+        return { tenant_id: currentTenantId, job_id: jobId, description: li.description, quantity: li.quantity, unit_price: li.unit_price, sort_order: idx };
+      });
+      var liRes = await supabaseClient.from('job_line_items').insert(lineRows);
+      if (liRes.error) throw new Error(liRes.error.message);
 
       var beforeFile = document.getElementById('j-before').files[0];
       var afterFile = document.getElementById('j-after').files[0];
@@ -636,6 +967,123 @@
       jobError.hidden = false;
     } finally {
       jobSaving.hidden = true;
+    }
+  });
+
+  async function deleteJob(jobId){
+    if (!confirm('Delete this job, its line items, and its photos? This cannot be undone.')) return;
+    var res = await supabaseClient.from('jobs').delete().eq('id', jobId);
+    if (res.error){ alert('Could not delete: ' + res.error.message); return; }
+    render();
+  }
+
+  document.getElementById('jobs-body').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var job = currentJobs.find(function(j){ return String(j.id) === String(btn.dataset.id); });
+    if (!job) return;
+    if (btn.dataset.action === 'edit') openJobFormForEdit(job);
+    if (btn.dataset.action === 'delete') deleteJob(job.id);
+  });
+
+  // ---- Invoices: view + print ----
+  function openInvoice(jobId){
+    var job = currentJobs.find(function(j){ return String(j.id) === String(jobId); });
+    if (!job) return;
+    var items = getInvoiceItems(job);
+    var total = invoiceTotal(job);
+    var profile = currentProfile || DEMO_PROFILE || {};
+    var bizName = profile.business_name || 'CK Pressure Washing';
+    var logoHtml = profile.logo_path ? '<img src="'+profile.logo_path+'" alt="">' : '';
+    var metaLines = [profile.phone, profile.email, profile.address].filter(Boolean).join(' &middot; ');
+    var linesHtml = items.map(function(li){
+      var amt = Number(li.quantity) * Number(li.unit_price);
+      return '<tr><td>'+li.description+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoney(li.unit_price)+'</td><td class="num">'+fmtMoney(amt)+'</td></tr>';
+    }).join('');
+
+    document.getElementById('invoice-sheet').innerHTML =
+      '<div class="invoice-head">' +
+        '<div class="invoice-brand">'+logoHtml+'<div class="biz-name">'+bizName+'</div><div class="biz-meta">'+metaLines+'</div></div>' +
+        '<div class="invoice-title"><h3>INVOICE</h3><div class="inv-meta">#'+job.id+'<br>'+fmtDate(job.job_date)+'</div></div>' +
+      '</div>' +
+      '<div class="invoice-billto"><div class="label">Bill To</div><div><b>'+job.client_name+'</b><br>'+job.address+'</div></div>' +
+      '<table class="invoice-lines"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>'+linesHtml+'</tbody></table>' +
+      '<div class="invoice-total-row"><span>Total</span><span>'+fmtMoney(total)+'</span></div>' +
+      '<div class="invoice-status-row"><span>Status</span><span class="chip '+job.status+'">'+STATUS_LABEL[job.status]+'</span></div>' +
+      '<div class="invoice-actions no-print">' +
+        '<button type="button" class="btn-cancel" id="invoice-close">Close</button>' +
+        '<button type="button" class="btn-save" id="invoice-print">Print</button>' +
+      '</div>';
+
+    document.getElementById('invoice-overlay').hidden = false;
+    document.getElementById('invoice-close').addEventListener('click', closeInvoice);
+    document.getElementById('invoice-print').addEventListener('click', function(){ window.print(); });
+  }
+  function closeInvoice(){ document.getElementById('invoice-overlay').hidden = true; }
+
+  document.getElementById('invoice-overlay').addEventListener('click', function(e){
+    if (e.target.id === 'invoice-overlay') closeInvoice();
+  });
+  document.getElementById('invoices-body').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="view-invoice"]');
+    if (!btn) return;
+    openInvoice(btn.dataset.id);
+  });
+
+  // ---- Business profile (branding) ----
+  var profileForm = document.getElementById('profile-form');
+  var profileError = document.getElementById('profile-error');
+  var profileSaving = document.getElementById('profile-saving');
+
+  document.getElementById('p-logo').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    pendingLogoFile = file;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var img = document.getElementById('p-logo-preview');
+      img.src = ev.target.result; img.hidden = false;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  profileForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    profileError.hidden = true;
+    if (!supabaseClient || currentTenantId == null){
+      profileError.textContent = "Can't save — sign in first.";
+      profileError.hidden = false;
+      return;
+    }
+    profileSaving.hidden = false;
+    try {
+      var logoPath = currentProfile ? currentProfile.logo_path : null;
+      if (pendingLogoFile){
+        var ext = (pendingLogoFile.name.split('.').pop() || 'png').toLowerCase();
+        var path = TENANT_SLUG + '/branding/logo-' + Date.now() + '.' + ext;
+        var up = await supabaseClient.storage.from(PHOTO_BUCKET).upload(path, pendingLogoFile);
+        if (up.error) throw new Error('Logo upload failed: ' + up.error.message);
+        var pub = supabaseClient.storage.from(PHOTO_BUCKET).getPublicUrl(path);
+        logoPath = pub.data.publicUrl;
+      }
+      var fields = {
+        tenant_id: currentTenantId,
+        business_name: document.getElementById('p-name').value.trim(),
+        phone: document.getElementById('p-phone').value.trim(),
+        email: document.getElementById('p-email').value.trim(),
+        address: document.getElementById('p-address').value.trim(),
+        logo_path: logoPath
+      };
+      var res = await supabaseClient.from('business_profile').upsert(fields, {onConflict:'tenant_id'}).select().single();
+      if (res.error) throw new Error(res.error.message);
+      currentProfile = res.data;
+      pendingLogoFile = null;
+      renderBrand(currentProfile);
+    } catch(err){
+      profileError.textContent = 'Could not save: ' + err.message;
+      profileError.hidden = false;
+    } finally {
+      profileSaving.hidden = true;
     }
   });
 
