@@ -1,0 +1,679 @@
+<title>CK Pressure Washing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --page:#F4F6F8; --surface:#FDFEFE; --surface-2:#FFFFFF;
+    --ink:#12181D; --ink-2:#4C5A63; --muted:#84939B;
+    --line:rgba(18,24,29,0.12); --line-strong:rgba(18,24,29,0.20);
+    --water:#1C6FB0; --water-soft:#DFEDF8; --water-ink:#0B3A5C;
+    --sun:#C97A2E; --sun-soft:#F7E9DA; --sun-ink:#5C3413;
+    --good:#0ca30c; --good-soft:#DFF3DF;
+    --warning:#b5790a; --warning-soft:#FCEBC4;
+    --critical:#d03b3b; --critical-soft:#FBDEDE;
+    --shadow:0 1px 2px rgba(18,24,29,0.05), 0 10px 26px rgba(18,24,29,0.06);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --page:#0F1418; --surface:#171E23; --surface-2:#1C242A;
+      --ink:#F1F4F6; --ink-2:#B7C2C8; --muted:#7C8A92;
+      --line:rgba(255,255,255,0.12); --line-strong:rgba(255,255,255,0.22);
+      --water:#4A9BDB; --water-soft:#173047; --water-ink:#CFE7F9;
+      --sun:#C1762E; --sun-soft:#3A2A1A; --sun-ink:#F0C596;
+      --good:#0ca30c; --good-soft:#173322;
+      --warning:#fab219; --warning-soft:#3A2E10;
+      --critical:#ec6f6f; --critical-soft:#3A1414;
+      --shadow:0 1px 2px rgba(0,0,0,0.35), 0 14px 32px rgba(0,0,0,0.4);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --page:#0F1418; --surface:#171E23; --surface-2:#1C242A;
+    --ink:#F1F4F6; --ink-2:#B7C2C8; --muted:#7C8A92;
+    --line:rgba(255,255,255,0.12); --line-strong:rgba(255,255,255,0.22);
+    --water:#4A9BDB; --water-soft:#173047; --water-ink:#CFE7F9;
+    --sun:#C1762E; --sun-soft:#3A2A1A; --sun-ink:#F0C596;
+    --good:#0ca30c; --good-soft:#173322;
+    --warning:#fab219; --warning-soft:#3A2E10;
+    --critical:#ec6f6f; --critical-soft:#3A1414;
+    --shadow:0 1px 2px rgba(0,0,0,0.35), 0 14px 32px rgba(0,0,0,0.4);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--page); color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:32px 28px 64px; }
+
+  header.bar{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+  .brand-block{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .brand-block h1{ font-family:"Archivo", sans-serif; font-weight:800; font-size:25px; margin:0; letter-spacing:-0.01em; }
+  .brand-block .by{ font-size:12.5px; color:var(--muted); }
+  .badge{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
+    background:var(--sun-soft); color:var(--sun); padding:3px 9px; border-radius:999px;
+    border:1px solid color-mix(in srgb, var(--sun) 35%, transparent); }
+  .badge.is-live{ background:var(--water-soft); color:var(--water-ink); border-color:color-mix(in srgb, var(--water) 35%, transparent); }
+  .sub-line{ font-size:13px; color:var(--ink-2); margin:8px 0 24px; }
+
+  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:14px; }
+  .kpi{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); }
+  .kpi .label{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin:0 0 8px; }
+  .kpi .value{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; font-size:25px; font-weight:600; margin:0; line-height:1; }
+  .kpi .value.warn{ color:var(--sun); }
+  .kpi .sub{ font-size:12px; color:var(--muted); margin-top:6px; }
+
+  .grid-main{ display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:14px; align-items:stretch; }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow); }
+  .card h2{ font-size:14.5px; font-weight:700; margin:0 0 2px; }
+  .card .card-sub{ font-size:12px; color:var(--muted); margin:0 0 14px; }
+  .card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+
+  .chart-area{ position:relative; }
+  svg#chart{ width:100%; height:170px; overflow:visible; }
+  .bar{ fill:var(--water); cursor:pointer; transition:fill .12s; }
+  .bar:hover{ fill:var(--water-ink); }
+  .axis-label{ font:500 10px "IBM Plex Mono", monospace; fill:var(--muted); }
+  #tooltip{ position:absolute; pointer-events:none; z-index:5; background:var(--ink); color:var(--page);
+    font-family:"IBM Plex Mono", monospace; font-size:11.5px; padding:6px 9px; border-radius:6px;
+    white-space:nowrap; opacity:0; transform:translate(-50%,-8px); transition:opacity .1s; }
+
+  .lead-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto; }
+  .lead-list li{ display:flex; flex-direction:column; gap:2px; padding-bottom:9px; border-bottom:1px solid var(--line); }
+  .lead-list li:last-child{ border-bottom:none; padding-bottom:0; }
+  .lead-addr{ font-size:13.5px; font-weight:600; }
+  .lead-sub{ font-size:11.5px; color:var(--muted); display:flex; justify-content:space-between; gap:8px; }
+
+  .btn-add{ font-family:"IBM Plex Sans", sans-serif; font-size:13px; font-weight:700;
+    background:var(--water); color:#fff; border:none; border-radius:8px; padding:8px 14px; cursor:pointer; white-space:nowrap; }
+  .btn-add:hover{ filter:brightness(0.94); }
+  .btn-add.small{ font-size:12px; padding:6px 11px; }
+
+  form.add-form{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+    background:var(--page); border:1px solid var(--line); border-radius:10px; padding:16px; margin:14px 0 18px; }
+  form.add-form.leads-form{ grid-template-columns:repeat(2,1fr); }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .field.span-2{ grid-column:span 2; }
+  .field label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); }
+  .field input, .field select, .field textarea{
+    font-family:"IBM Plex Sans", sans-serif; font-size:13.5px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px;
+  }
+  .field textarea{ resize:vertical; min-height:38px; font-family:inherit; }
+  .form-actions{ grid-column:1 / -1; display:flex; gap:10px; margin-top:2px; align-items:center; flex-wrap:wrap; }
+  .btn-save{ font-family:"IBM Plex Sans", sans-serif; font-size:13px; font-weight:700;
+    background:var(--water); color:#fff; border:none; border-radius:7px; padding:8px 16px; cursor:pointer; }
+  .btn-cancel{ font-family:"IBM Plex Sans", sans-serif; font-size:13px; font-weight:500;
+    background:transparent; color:var(--ink-2); border:1px solid var(--line-strong); border-radius:7px; padding:8px 16px; cursor:pointer; }
+  .form-error{ grid-column:1 / -1; font-size:12.5px; color:var(--critical); margin:0; }
+  .form-hint{ grid-column:1 / -1; font-size:11.5px; color:var(--muted); margin:0; }
+
+  table#jobs{ width:100%; border-collapse:collapse; }
+  table#jobs th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);
+    font-weight:700; padding:0 10px 10px; border-bottom:1px solid var(--line); }
+  table#jobs td{ padding:11px 10px; font-size:13.5px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  table#jobs tr:last-child td{ border-bottom:none; }
+  table#jobs td.money{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  table#jobs td.date{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; color:var(--ink-2); white-space:nowrap; }
+  .addr-sub{ font-size:11.5px; color:var(--muted); }
+
+  .chip{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:999px; white-space:nowrap; }
+  .chip::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .chip.quoted{ background:var(--line); color:var(--ink-2); }
+  .chip.scheduled{ background:var(--sun-soft); color:var(--sun-ink); }
+  .chip.completed{ background:var(--water-soft); color:var(--water-ink); }
+  .chip.paid{ background:var(--good-soft); color:var(--good); }
+  .chip.not_contacted{ background:var(--line); color:var(--ink-2); }
+  .chip.contacted{ background:var(--sun-soft); color:var(--sun-ink); }
+  .chip.interested{ background:var(--good-soft); color:var(--good); }
+  .chip.not_interested{ background:var(--critical-soft); color:var(--critical); }
+
+  .photo-thumbs{ display:flex; gap:5px; }
+  .photo-thumbs a{ display:block; width:34px; height:34px; border-radius:5px; overflow:hidden; border:1px solid var(--line-strong); }
+  .photo-thumbs img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .photo-none{ font-size:11.5px; color:var(--muted); }
+
+  footer.note{ margin-top:20px; font-size:12px; color:var(--muted); text-align:center; }
+
+  @media (max-width:900px){
+    .kpis{ grid-template-columns:repeat(2,1fr); }
+    .grid-main{ grid-template-columns:1fr; }
+    form.add-form{ grid-template-columns:1fr 1fr; }
+    table#jobs{ display:block; overflow-x:auto; }
+  }
+  @media (max-width:520px){ form.add-form{ grid-template-columns:1fr; } .field.span-2{ grid-column:span 1; } }
+
+  /* ---- Sign-in gate ---- */
+  .auth-gate{
+    position:fixed; inset:0; background:var(--page); z-index:50;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .login-card{
+    width:100%; max-width:340px; background:var(--surface); border:1px solid var(--line);
+    border-radius:14px; padding:28px 26px; box-shadow:var(--shadow);
+  }
+  .login-card h2{ font-family:"Archivo", sans-serif; font-weight:800; font-size:20px; margin:0 0 4px; }
+  .login-sub{ font-size:12.5px; color:var(--muted); margin:0 0 20px; }
+  .login-card .field{ display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+  .login-card label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); }
+  .login-card input{
+    font-family:"IBM Plex Sans", sans-serif; font-size:14px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line-strong); border-radius:7px; padding:9px 10px;
+  }
+  .login-hint{ font-size:11.5px; color:var(--muted); margin:14px 0 0; line-height:1.5; }
+  .who-line{ display:flex; align-items:center; gap:10px; margin-top:6px; }
+  .who-line span{ font-size:12px; color:var(--muted); }
+  .btn-signout{
+    font-family:"IBM Plex Sans", sans-serif; font-size:12px; font-weight:500;
+    background:transparent; color:var(--ink-2); border:1px solid var(--line-strong); border-radius:7px;
+    padding:5px 11px; cursor:pointer;
+  }
+  [hidden]{ display:none !important; }
+</style>
+
+<div id="auth-gate" class="auth-gate" hidden>
+  <form id="login-form" class="login-card">
+    <h2>Sign in</h2>
+    <p class="login-sub">CK Pressure Washing — Business Dashboard</p>
+    <div class="field"><label for="login-email">Email</label><input id="login-email" type="email" required autocomplete="username"></div>
+    <div class="field"><label for="login-password">Password</label><input id="login-password" type="password" required autocomplete="current-password"></div>
+    <button type="submit" class="btn-save" style="width:100%;">Sign In</button>
+    <p id="login-error" class="form-error" hidden></p>
+    <p class="login-hint">Ask Strickly McGee Solutions for access if you don't have a login yet.</p>
+  </form>
+</div>
+
+<div class="wrap" id="dashboard-content">
+
+  <header class="bar">
+    <div class="brand-block">
+      <h1>CK Pressure Washing</h1>
+      <span class="by">Business Dashboard</span>
+      <span class="badge" id="data-badge">Demo · Sample Data</span>
+    </div>
+    <div class="who-line" id="who-line" hidden>
+      <span id="who-email"></span>
+      <button type="button" id="signout-btn" class="btn-signout">Sign out</button>
+    </div>
+  </header>
+  <p class="sub-line">Jobs, invoicing, and Stonewood Creek neighborhood targeting — replacing the old Sheets/Apps Script version.</p>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid-main">
+    <div class="card">
+      <h2>Jobs Completed — Last 8 Weeks</h2>
+      <p class="card-sub">Hover a bar for the exact count.</p>
+      <div class="chart-area">
+        <svg id="chart" viewBox="0 0 700 180" preserveAspectRatio="none"></svg>
+        <div id="tooltip"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Neighborhood Targeting</h2><p class="card-sub">Stonewood Creek prospects.</p></div>
+        <button id="lead-add-btn" class="btn-add small" type="button">+ Lead</button>
+      </div>
+      <form id="lead-form" class="add-form leads-form" hidden>
+        <div class="field span-2"><label for="l-address">Address</label><input id="l-address" type="text" placeholder="123 Stonewood Dr" required></div>
+        <div class="field"><label for="l-sub">Subdivision</label><input id="l-sub" type="text" placeholder="Stonewood Creek" value="Stonewood Creek"></div>
+        <div class="field">
+          <label for="l-status">Status</label>
+          <select id="l-status">
+            <option value="not_contacted">Not Contacted</option>
+            <option value="contacted">Contacted</option>
+            <option value="interested">Interested</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="not_interested">Not Interested</option>
+          </select>
+        </div>
+        <div class="field span-2"><label for="l-notes">Notes</label><input id="l-notes" type="text" placeholder="Optional"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Lead</button>
+          <button type="button" id="lead-cancel" class="btn-cancel">Cancel</button>
+        </div>
+        <p id="lead-error" class="form-error" hidden></p>
+      </form>
+      <ul class="lead-list" id="lead-list"></ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><h2>Jobs &amp; Invoices</h2><p class="card-sub">Every job, its price, its status, and before/after photos.</p></div>
+      <button id="job-add-btn" class="btn-add" type="button">+ Add Job</button>
+    </div>
+    <form id="job-form" class="add-form" hidden>
+      <div class="field span-2"><label for="j-client">Client Name</label><input id="j-client" type="text" required></div>
+      <div class="field span-2"><label for="j-address">Address</label><input id="j-address" type="text" required></div>
+      <div class="field">
+        <label for="j-service">Service</label>
+        <select id="j-service">
+          <option>Driveway</option><option>House Wash</option><option>Deck / Patio</option>
+          <option>Roof</option><option>Fence</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label for="j-price">Price ($)</label><input id="j-price" type="number" step="0.01" min="0" required></div>
+      <div class="field"><label for="j-date">Date</label><input id="j-date" type="date" required></div>
+      <div class="field">
+        <label for="j-status">Status</label>
+        <select id="j-status">
+          <option value="quoted">Quoted</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="completed">Completed</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+      <div class="field"><label for="j-before">Before Photo</label><input id="j-before" type="file" accept="image/*"></div>
+      <div class="field"><label for="j-after">After Photo</label><input id="j-after" type="file" accept="image/*"></div>
+      <div class="field span-2"><label for="j-notes">Notes</label><input id="j-notes" type="text" placeholder="Optional"></div>
+      <div class="form-actions">
+        <button type="submit" class="btn-save">Save Job</button>
+        <button type="button" id="job-cancel" class="btn-cancel">Cancel</button>
+        <span id="job-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
+      </div>
+      <p id="job-error" class="form-error" hidden></p>
+      <p class="form-hint">Photos upload to Supabase Storage automatically — leave either blank if you don't have one yet.</p>
+    </form>
+    <table id="jobs">
+      <thead>
+        <tr><th>Client</th><th>Service</th><th>Date</th><th>Price</th><th>Status</th><th>Photos</th></tr>
+      </thead>
+      <tbody id="jobs-body"></tbody>
+    </table>
+  </div>
+
+  <footer class="note">CK Pressure Washing LLC — internal tool. Not for external distribution.</footer>
+</div>
+
+<script>
+(function(){
+  // ---- Fill these in from Supabase → Project Settings → API ----
+  var SUPABASE_URL = 'https://uanghzuketepjencbebw.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_kx-z6hgtOSgXEl6wzBm3kg_NJqfnZQI';
+  var PHOTO_BUCKET = 'job-photos';
+  // This is the tenant row (see the "tenants" table) this deployed page belongs to.
+  // Every read/write this page makes is scoped to this tenant once someone signs in.
+  var TENANT_SLUG = 'ck-pressure-washing';
+
+  var supabaseClient = null;
+  if (SUPABASE_URL.indexOf('YOUR_') !== 0 && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  var currentTenantId = null; // resolved after sign-in, from the "memberships" table
+
+  var STATUS_LABEL = { quoted:"Quoted", scheduled:"Scheduled", completed:"Completed", paid:"Paid" };
+  var LEAD_LABEL = { not_contacted:"Not Contacted", contacted:"Contacted", interested:"Interested", scheduled:"Scheduled", not_interested:"Not Interested" };
+
+  // ---- Demo fallback data (used until Supabase is connected) ----
+  var DEMO_JOBS = [
+    {id:'d1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"Driveway", price:225, job_date:"2026-09-02", status:"paid", photos:[]},
+    {id:'d2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"House Wash", price:410, job_date:"2026-09-05", status:"completed", photos:[]},
+    {id:'d3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"Deck / Patio", price:180, job_date:"2026-09-08", status:"scheduled", photos:[]},
+    {id:'d4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"Roof", price:650, job_date:"2026-09-10", status:"quoted", photos:[]}
+  ];
+  var DEMO_LEADS = [
+    {id:'l1', address:"22 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"interested", notes:"Asked for a quote next week"},
+    {id:'l2', address:"140 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"contacted", notes:""},
+    {id:'l3', address:"9 Millbrook Ct", subdivision:"Millbrook", status:"not_contacted", notes:""}
+  ];
+  var DEMO_CHART = [2,3,1,4,3,5,4,6]; // jobs completed, last 8 weeks
+
+  function fmtMoney(n){ return "$" + Number(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+  function fmtDate(s){
+    var d = new Date(s + 'T00:00:00');
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  }
+  function startOfWeek(d){
+    var x = new Date(d); var day = x.getDay();
+    var diff = (day === 0 ? -6 : 1) - day; // Monday start
+    x.setDate(x.getDate() + diff); x.setHours(0,0,0,0);
+    return x;
+  }
+
+  function weeklyBuckets(jobs){
+    var today = new Date();
+    var thisWeekStart = startOfWeek(today);
+    var buckets = new Array(8).fill(0);
+    jobs.forEach(function(j){
+      if (j.status !== 'completed' && j.status !== 'paid') return;
+      var jd = new Date(j.job_date + 'T00:00:00');
+      var weekStart = startOfWeek(jd);
+      var weeksAgo = Math.round((thisWeekStart - weekStart) / (7*24*3600*1000));
+      var idx = 7 - weeksAgo;
+      if (idx >= 0 && idx < 8) buckets[idx] += 1;
+    });
+    return buckets;
+  }
+
+  function computeKPIs(jobs, leads){
+    var today = new Date();
+    var wkStart = startOfWeek(today);
+    var jobsThisWeek = jobs.filter(function(j){ return new Date(j.job_date+'T00:00:00') >= wkStart; }).length;
+    var revenuePaid = jobs.filter(function(j){ return j.status==='paid'; }).reduce(function(s,j){ return s + Number(j.price); }, 0);
+    var outstanding = jobs.filter(function(j){ return j.status==='completed'; }).reduce(function(s,j){ return s + Number(j.price); }, 0);
+    var activeLeads = leads.filter(function(l){ return l.status !== 'not_interested'; }).length;
+    return { jobsThisWeek: jobsThisWeek, revenuePaid: revenuePaid, outstanding: outstanding, activeLeads: activeLeads };
+  }
+
+  function renderKPIs(k){
+    var el = document.getElementById('kpis');
+    el.innerHTML =
+      '<div class="kpi"><p class="label">Jobs This Week</p><p class="value">'+k.jobsThisWeek+'</p></div>' +
+      '<div class="kpi"><p class="label">Revenue (Paid)</p><p class="value">'+fmtMoney(k.revenuePaid)+'</p></div>' +
+      '<div class="kpi"><p class="label">Outstanding</p><p class="value'+(k.outstanding>0?' warn':'')+'">'+fmtMoney(k.outstanding)+'</p><p class="sub">'+(k.outstanding>0?'Completed, not yet paid':'All caught up')+'</p></div>' +
+      '<div class="kpi"><p class="label">Active Leads</p><p class="value">'+k.activeLeads+'</p><p class="sub">Stonewood Creek &amp; nearby</p></div>';
+  }
+
+  function renderChart(buckets){
+    var svg = document.getElementById('chart');
+    var tooltip = document.getElementById('tooltip');
+    var W = 700, H = 180, padB = 24, padT = 10;
+    var max = Math.max.apply(null, buckets.concat([1])) * 1.2;
+    var gap = 10;
+    var barW = (W - gap*(buckets.length-1)) / buckets.length;
+    var svgns = "http://www.w3.org/2000/svg";
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var today = new Date(); var wkStart = startOfWeek(today);
+    var labels = [];
+    for (var i=7;i>=0;i--){ var d=new Date(wkStart); d.setDate(d.getDate()-7*i); labels.push(d); }
+
+    var baseline = document.createElementNS(svgns,'line');
+    baseline.setAttribute('x1',0); baseline.setAttribute('x2',W);
+    baseline.setAttribute('y1', H-padB); baseline.setAttribute('y2', H-padB);
+    baseline.setAttribute('stroke','var(--line)'); baseline.setAttribute('stroke-width','1');
+    svg.appendChild(baseline);
+
+    buckets.forEach(function(v,i){
+      var h = (v/max) * (H - padB - padT);
+      var x = i * (barW + gap);
+      var y = (H - padB) - h;
+      var rect = document.createElementNS(svgns,'rect');
+      rect.setAttribute('x', x); rect.setAttribute('y', y);
+      rect.setAttribute('width', barW); rect.setAttribute('height', Math.max(h,2));
+      rect.setAttribute('rx', 3); rect.setAttribute('class','bar');
+      rect.addEventListener('mousemove', function(e){
+        var box = svg.getBoundingClientRect();
+        tooltip.style.left = (e.clientX - box.left) + 'px';
+        tooltip.style.top = (y / H * box.height) + 'px';
+        tooltip.textContent = labels[i].toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' wk — ' + v + ' job' + (v===1?'':'s');
+        tooltip.style.opacity = 1;
+      });
+      rect.addEventListener('mouseleave', function(){ tooltip.style.opacity = 0; });
+      svg.appendChild(rect);
+
+      var t = document.createElementNS(svgns,'text');
+      t.setAttribute('x', x + barW/2); t.setAttribute('y', H-6);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('class','axis-label');
+      t.textContent = labels[i].toLocaleDateString('en-US',{month:'numeric',day:'numeric'});
+      svg.appendChild(t);
+    });
+  }
+
+  function photoThumbs(photos){
+    if (!photos || photos.length === 0) return '<span class="photo-none">—</span>';
+    return '<div class="photo-thumbs">' + photos.map(function(p){
+      return '<a href="'+p.photo_url+'" target="_blank" rel="noopener" title="'+p.kind+'"><img src="'+p.photo_url+'" alt="'+p.kind+' photo"></a>';
+    }).join('') + '</div>';
+  }
+
+  function renderJobs(jobs){
+    var el = document.getElementById('jobs-body');
+    var sorted = jobs.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
+    el.innerHTML = sorted.map(function(j){
+      return '<tr><td><b>'+j.client_name+'</b><div class="addr-sub">'+j.address+'</div></td>' +
+        '<td>'+j.service_type+'</td>' +
+        '<td class="date">'+fmtDate(j.job_date)+'</td>' +
+        '<td class="money">'+fmtMoney(j.price)+'</td>' +
+        '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
+        '<td>'+photoThumbs(j.photos)+'</td></tr>';
+    }).join('');
+  }
+
+  function renderLeads(leads){
+    var el = document.getElementById('lead-list');
+    el.innerHTML = leads.map(function(l){
+      return '<li><span class="lead-addr">'+l.address+'</span>' +
+        '<span class="lead-sub"><span>'+(l.subdivision||'')+'</span><span class="chip '+l.status+'">'+LEAD_LABEL[l.status]+'</span></span></li>';
+    }).join('');
+  }
+
+  function setBadge(isLive){
+    var badge = document.getElementById('data-badge');
+    if (isLive){ badge.textContent = 'Live · Supabase'; badge.classList.add('is-live'); }
+    else { badge.textContent = 'Demo · Sample Data'; badge.classList.remove('is-live'); }
+  }
+
+  async function fetchLive(){
+    if (!supabaseClient) return null;
+    try {
+      var jobsQ = supabaseClient.from('jobs').select('*').order('job_date', {ascending:false});
+      var leadsQ = supabaseClient.from('leads').select('*').order('created_at', {ascending:false});
+      var photosQ = supabaseClient.from('job_photos').select('*');
+      // Once auth is wired up, currentTenantId is set and every read is scoped to it —
+      // this .eq is belt-and-suspenders on top of the RLS policy, not a substitute for it.
+      if (currentTenantId != null){
+        jobsQ = jobsQ.eq('tenant_id', currentTenantId);
+        leadsQ = leadsQ.eq('tenant_id', currentTenantId);
+        photosQ = photosQ.eq('tenant_id', currentTenantId);
+      }
+      var jobsRes = await jobsQ;
+      var leadsRes = await leadsQ;
+      var photosRes = await photosQ;
+      if (jobsRes.error || leadsRes.error || photosRes.error){
+        console.error('Supabase error:', (jobsRes.error||leadsRes.error||photosRes.error).message);
+        return null;
+      }
+      var photosByJob = {};
+      (photosRes.data||[]).forEach(function(p){
+        (photosByJob[p.job_id] = photosByJob[p.job_id] || []).push(p);
+      });
+      var jobs = (jobsRes.data||[]).map(function(j){ return Object.assign({}, j, {photos: photosByJob[j.id] || []}); });
+      return { jobs: jobs, leads: leadsRes.data || [] };
+    } catch(e){ console.error('Supabase fetch failed:', e); return null; }
+  }
+
+  var currentJobs = DEMO_JOBS, currentLeads = DEMO_LEADS;
+
+  // ---- Auth gate: sign in, then resolve which tenant this account belongs to ----
+  var authGate = document.getElementById('auth-gate');
+  var dashboardContent = document.getElementById('dashboard-content');
+  var loginForm = document.getElementById('login-form');
+  var loginError = document.getElementById('login-error');
+  var whoLine = document.getElementById('who-line');
+  var whoEmail = document.getElementById('who-email');
+
+  function showGate(message){
+    dashboardContent.hidden = true;
+    authGate.hidden = false;
+    if (message){ loginError.textContent = message; loginError.hidden = false; }
+  }
+  function showDashboard(email){
+    authGate.hidden = true;
+    dashboardContent.hidden = false;
+    whoLine.hidden = false;
+    whoEmail.textContent = email;
+  }
+
+  // Resolves the signed-in user's membership for THIS dashboard's tenant.
+  // Returns the tenant_id if they're a member, or null if they aren't (or aren't signed in).
+  async function resolveTenantForCurrentUser(){
+    var membership = await supabaseClient
+      .from('memberships')
+      .select('tenant_id, tenants!inner(slug)')
+      .eq('tenants.slug', TENANT_SLUG)
+      .maybeSingle();
+    if (membership.error || !membership.data) return null;
+    return membership.data.tenant_id;
+  }
+
+  async function checkAuthAndRender(){
+    if (!supabaseClient){
+      // No Supabase configured yet — stay in open demo mode, no login required.
+      authGate.hidden = true;
+      dashboardContent.hidden = false;
+      render();
+      return;
+    }
+    var sessionRes = await supabaseClient.auth.getSession();
+    var session = sessionRes.data && sessionRes.data.session;
+    if (!session){ showGate(); return; }
+
+    currentTenantId = await resolveTenantForCurrentUser();
+    if (currentTenantId == null){
+      await supabaseClient.auth.signOut();
+      showGate("That account doesn't have access to this dashboard. Signed out — contact your admin if this is unexpected.");
+      return;
+    }
+    showDashboard(session.user.email);
+    render();
+  }
+
+  if (loginForm){
+    loginForm.addEventListener('submit', async function(e){
+      e.preventDefault();
+      loginError.hidden = true;
+      var email = document.getElementById('login-email').value.trim();
+      var password = document.getElementById('login-password').value;
+      var result = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+      if (result.error){
+        loginError.textContent = result.error.message;
+        loginError.hidden = false;
+        return;
+      }
+      await checkAuthAndRender();
+    });
+  }
+
+  var signoutBtn = document.getElementById('signout-btn');
+  if (signoutBtn){
+    signoutBtn.addEventListener('click', async function(){
+      await supabaseClient.auth.signOut();
+      currentTenantId = null;
+      whoLine.hidden = true;
+      showGate();
+    });
+  }
+
+  async function render(){
+    var live = await fetchLive();
+    setBadge(!!live);
+    currentJobs = live ? live.jobs : DEMO_JOBS;
+    currentLeads = live ? live.leads : DEMO_LEADS;
+    renderKPIs(computeKPIs(currentJobs, currentLeads));
+    renderChart(live ? weeklyBuckets(currentJobs) : DEMO_CHART);
+    renderJobs(currentJobs);
+    renderLeads(currentLeads);
+  }
+
+  // ---- Add Job form (with optional before/after photo upload) ----
+  var jobBtn = document.getElementById('job-add-btn');
+  var jobForm = document.getElementById('job-form');
+  var jobError = document.getElementById('job-error');
+  var jobSaving = document.getElementById('job-saving');
+
+  function closeJobForm(){ jobForm.hidden = true; jobForm.reset(); jobBtn.hidden = false; jobError.hidden = true; }
+  jobBtn.addEventListener('click', function(){ jobForm.hidden = false; jobBtn.hidden = true; document.getElementById('j-client').focus(); });
+  document.getElementById('job-cancel').addEventListener('click', closeJobForm);
+
+  async function uploadPhoto(file, kind, jobId){
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    // Photos are namespaced under the tenant's slug folder — the storage policy
+    // only allows a signed-in member to read/write inside their own tenant's folder.
+    var path = TENANT_SLUG + '/' + jobId + '-' + kind + '-' + Date.now() + '.' + ext;
+    var up = await supabaseClient.storage.from(PHOTO_BUCKET).upload(path, file);
+    if (up.error) throw new Error('Photo upload failed (' + kind + '): ' + up.error.message);
+    var pub = supabaseClient.storage.from(PHOTO_BUCKET).getPublicUrl(path);
+    return pub.data.publicUrl;
+  }
+
+  jobForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    jobError.hidden = true;
+    if (!supabaseClient){
+      jobError.textContent = "Can't save yet — fill in SUPABASE_URL and SUPABASE_ANON_KEY at the top of this file first.";
+      jobError.hidden = false;
+      return;
+    }
+    if (currentTenantId == null){
+      jobError.textContent = "Can't save — sign in first.";
+      jobError.hidden = false;
+      return;
+    }
+    jobSaving.hidden = false;
+    try {
+      var newJob = {
+        tenant_id: currentTenantId,
+        client_name: document.getElementById('j-client').value.trim(),
+        address: document.getElementById('j-address').value.trim(),
+        service_type: document.getElementById('j-service').value,
+        price: parseFloat(document.getElementById('j-price').value),
+        job_date: document.getElementById('j-date').value,
+        status: document.getElementById('j-status').value,
+        notes: document.getElementById('j-notes').value.trim()
+      };
+      var insertRes = await supabaseClient.from('jobs').insert(newJob).select().single();
+      if (insertRes.error) throw new Error(insertRes.error.message);
+      var jobId = insertRes.data.id;
+
+      var beforeFile = document.getElementById('j-before').files[0];
+      var afterFile = document.getElementById('j-after').files[0];
+      if (beforeFile){
+        var beforeUrl = await uploadPhoto(beforeFile, 'before', jobId);
+        await supabaseClient.from('job_photos').insert({tenant_id: currentTenantId, job_id: jobId, kind:'before', photo_url: beforeUrl});
+      }
+      if (afterFile){
+        var afterUrl = await uploadPhoto(afterFile, 'after', jobId);
+        await supabaseClient.from('job_photos').insert({tenant_id: currentTenantId, job_id: jobId, kind:'after', photo_url: afterUrl});
+      }
+
+      closeJobForm();
+      render();
+    } catch(err){
+      jobError.textContent = 'Could not save: ' + err.message;
+      jobError.hidden = false;
+    } finally {
+      jobSaving.hidden = true;
+    }
+  });
+
+  // ---- Add Lead form ----
+  var leadBtn = document.getElementById('lead-add-btn');
+  var leadForm = document.getElementById('lead-form');
+  var leadError = document.getElementById('lead-error');
+
+  function closeLeadForm(){ leadForm.hidden = true; leadForm.reset(); document.getElementById('l-sub').value='Stonewood Creek'; leadBtn.hidden = false; leadError.hidden = true; }
+  leadBtn.addEventListener('click', function(){ leadForm.hidden = false; leadBtn.hidden = true; document.getElementById('l-address').focus(); });
+  document.getElementById('lead-cancel').addEventListener('click', closeLeadForm);
+
+  leadForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    leadError.hidden = true;
+    if (!supabaseClient){
+      leadError.textContent = "Can't save yet — fill in SUPABASE_URL and SUPABASE_ANON_KEY at the top of this file first.";
+      leadError.hidden = false;
+      return;
+    }
+    if (currentTenantId == null){
+      leadError.textContent = "Can't save — sign in first.";
+      leadError.hidden = false;
+      return;
+    }
+    var newLead = {
+      tenant_id: currentTenantId,
+      address: document.getElementById('l-address').value.trim(),
+      subdivision: document.getElementById('l-sub').value.trim(),
+      status: document.getElementById('l-status').value,
+      notes: document.getElementById('l-notes').value.trim()
+    };
+    var result = await supabaseClient.from('leads').insert(newLead);
+    if (result.error){ leadError.textContent = 'Could not save: ' + result.error.message; leadError.hidden = false; return; }
+    closeLeadForm();
+    render();
+  });
+
+  checkAuthAndRender();
+})();
+</script>
