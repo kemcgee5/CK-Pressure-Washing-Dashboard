@@ -386,9 +386,11 @@
           <button type="submit" class="btn-save">Save Job</button>
           <button type="button" id="job-cancel" class="btn-cancel">Cancel</button>
           <button type="button" id="job-text-worker-btn" class="btn-add small" hidden>Text Work Order</button>
+          <button type="button" id="job-copy-worker-btn" class="btn-cancel" hidden>Copy Message</button>
           <span id="job-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
         </div>
         <p id="job-error" class="form-error" hidden></p>
+        <p id="job-text-hint" class="form-hint" hidden>On a phone, "Text Work Order" opens Messages pre-filled. On a desktop without a texting app set up, it may not open anything — use "Copy Message" and paste it into whatever you use to text instead.</p>
         <p class="form-hint">Photos upload to Supabase Storage automatically — leave either blank if you don't have one yet.</p>
       </form>
       <table id="jobs">
@@ -1188,20 +1190,43 @@
 
   function updateTextWorkerButtonVisibility(){
     var worker = getWorker(document.getElementById('j-worker').value);
-    document.getElementById('job-text-worker-btn').hidden = !(worker && worker.phone);
+    var show = !!(worker && worker.phone);
+    document.getElementById('job-text-worker-btn').hidden = !show;
+    document.getElementById('job-copy-worker-btn').hidden = !show;
+    document.getElementById('job-text-hint').hidden = !show;
   }
-  document.getElementById('j-worker').addEventListener('change', updateTextWorkerButtonVisibility);
-  document.getElementById('job-text-worker-btn').addEventListener('click', function(){
-    var worker = getWorker(document.getElementById('j-worker').value);
-    if (!worker || !worker.phone) return;
-    var job = {
+  function currentJobFormFields(){
+    return {
       client_name: document.getElementById('j-client').value.trim() || '(client TBD)',
       service_type: document.getElementById('j-service').value,
       address: document.getElementById('j-address').value.trim(),
       job_date: document.getElementById('j-date').value,
       notes: document.getElementById('j-notes').value.trim()
     };
-    window.location.href = smsHref(worker.phone, buildWorkOrderMessage(job));
+  }
+  document.getElementById('j-worker').addEventListener('change', updateTextWorkerButtonVisibility);
+  document.getElementById('job-text-worker-btn').addEventListener('click', function(){
+    var worker = getWorker(document.getElementById('j-worker').value);
+    if (!worker || !worker.phone) return;
+    // This only works from the device that's actually doing the texting — it
+    // opens whatever app that device has registered for sms: links (Messages
+    // on a phone, or on a Mac/PC only if one is set up and registered there).
+    // It can't reach out from this browser to the worker's phone by itself.
+    window.location.href = smsHref(worker.phone, buildWorkOrderMessage(currentJobFormFields()));
+  });
+  document.getElementById('job-copy-worker-btn').addEventListener('click', async function(){
+    var worker = getWorker(document.getElementById('j-worker').value);
+    if (!worker || !worker.phone) return;
+    var msg = buildWorkOrderMessage(currentJobFormFields());
+    var btn = document.getElementById('job-copy-worker-btn');
+    try {
+      await navigator.clipboard.writeText(msg);
+      var original = 'Copy Message';
+      btn.textContent = 'Copied!';
+      setTimeout(function(){ btn.textContent = original; }, 1500);
+    } catch (e) {
+      window.prompt('Copy this message to text ' + worker.name + ' at ' + worker.phone + ':', msg);
+    }
   });
 
   function openJobFormForAdd(prefillDate){
