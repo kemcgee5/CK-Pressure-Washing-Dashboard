@@ -141,13 +141,18 @@
     background:var(--surface-2); padding:4px; }
 
   /* ---- Workers ---- */
-  .worker-row-form{ display:flex; gap:8px; margin-bottom:12px; }
-  .worker-row-form input{ flex:1; font-family:"IBM Plex Sans", sans-serif; font-size:13.5px; color:var(--ink);
+  .worker-row-form{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .worker-row-form input{ font-family:"IBM Plex Sans", sans-serif; font-size:13.5px; color:var(--ink);
     background:var(--surface-2); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px; }
+  .worker-row-form input[type="text"]:first-of-type{ flex:2; min-width:120px; }
+  .worker-row-form input[type="tel"]{ flex:1; min-width:120px; }
   .worker-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
-  .worker-list li{ display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .worker-list li{ display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid var(--line); font-size:13.5px; gap:10px; }
   .worker-list li:last-child{ border-bottom:none; padding-bottom:0; }
   .worker-empty{ font-size:12px; color:var(--muted); }
+  .worker-name{ display:flex; flex-direction:column; }
+  .worker-phone{ font-size:11.5px; color:var(--muted); }
+  .worker-actions{ display:flex; gap:6px; white-space:nowrap; }
 
   /* ---- Calendar ---- */
   .cal-toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; flex-wrap:wrap; }
@@ -179,7 +184,8 @@
   }
 
   .icon-btn{ font-family:"IBM Plex Sans", sans-serif; font-size:11.5px; font-weight:600;
-    background:transparent; border:1px solid var(--line-strong); border-radius:6px; padding:4px 9px; cursor:pointer; color:var(--ink-2); }
+    background:transparent; border:1px solid var(--line-strong); border-radius:6px; padding:4px 9px; cursor:pointer; color:var(--ink-2);
+    text-decoration:none; display:inline-block; line-height:1.4; }
   .icon-btn:hover{ color:var(--ink); border-color:var(--ink-2); }
   .icon-btn.danger:hover{ color:var(--critical); border-color:var(--critical); }
   .actions-cell{ display:flex; gap:6px; white-space:nowrap; }
@@ -379,6 +385,7 @@
         <div class="form-actions">
           <button type="submit" class="btn-save">Save Job</button>
           <button type="button" id="job-cancel" class="btn-cancel">Cancel</button>
+          <button type="button" id="job-text-worker-btn" class="btn-add small" hidden>Text Work Order</button>
           <span id="job-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
         </div>
         <p id="job-error" class="form-error" hidden></p>
@@ -397,10 +404,12 @@
   <section class="tab-panel" id="tab-schedule" hidden>
     <div class="card">
       <h2>Workers</h2>
-      <p class="card-sub">Add the people you assign jobs to. Just a name is enough for now.</p>
+      <p class="card-sub">Add the people you assign jobs to. Phone number is optional — add it to be able to text them the work order.</p>
       <form id="worker-add-form" class="worker-row-form">
         <input id="worker-name-input" type="text" placeholder="Worker name" required>
-        <button type="submit" class="btn-add">+ Add</button>
+        <input id="worker-phone-input" type="tel" placeholder="Phone (optional)">
+        <button type="submit" id="worker-save-btn" class="btn-add">+ Add</button>
+        <button type="button" id="worker-cancel-btn" class="btn-cancel" hidden>Cancel</button>
       </form>
       <ul class="worker-list" id="workers-list"></ul>
       <p id="worker-error" class="form-error" hidden></p>
@@ -545,6 +554,7 @@
   var isLive = false;
   var editingJobId = null;
   var editingLeadId = null;
+  var editingWorkerId = null;
   var pendingLogoFile = null;
   var currentProfile = null;
   var currentWorkers = DEMO_WORKERS;
@@ -554,7 +564,7 @@
   var LEAD_LABEL = { not_contacted:"Not Contacted", contacted:"Contacted", interested:"Interested", scheduled:"Scheduled", not_interested:"Not Interested" };
 
   // ---- Demo fallback data (used until Supabase is connected) ----
-  var DEMO_WORKERS = [ {id:'w1', name:'Marcus'}, {id:'w2', name:'Dee'} ];
+  var DEMO_WORKERS = [ {id:'w1', name:'Marcus', phone:'(770) 555-0110'}, {id:'w2', name:'Dee', phone:''} ];
   var DEMO_JOBS = [
     {id:'d1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"Driveway", price:225, job_date:"2026-09-02", status:"paid", tax_rate:0, assigned_worker_id:'w1', photos:[], line_items:[{description:"Driveway wash", quantity:1, unit_price:225}]},
     {id:'d2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"House Wash", price:438.70, job_date:"2026-09-05", status:"completed", tax_rate:7, assigned_worker_id:'w2', photos:[], line_items:[{description:"House wash", quantity:1, unit_price:350},{description:"Gutter brightening", quantity:1, unit_price:60}]},
@@ -699,20 +709,46 @@
     return { items: items, subtotal: subtotal, taxRate: taxRate, taxAmt: taxAmt, total: subtotal + taxAmt };
   }
   function invoiceTotal(job){ return computeInvoiceTotals(job).total; }
+  function getWorker(id){
+    if (!id) return null;
+    return (currentWorkers||[]).find(function(w){ return String(w.id) === String(id); }) || null;
+  }
   function workerName(id){
-    if (!id) return '';
-    var w = (currentWorkers||[]).find(function(w){ return String(w.id) === String(id); });
+    var w = getWorker(id);
     return w ? w.name : '';
+  }
+
+  // ---- Texting a work order to the assigned worker (opens their Messages app; no SMS service needed) ----
+  function mapsLink(address){
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address || '');
+  }
+  function smsHref(phone, body){
+    var digits = String(phone || '').replace(/[^0-9+]/g, '');
+    return 'sms:' + digits + '?body=' + encodeURIComponent(body);
+  }
+  function buildWorkOrderMessage(job){
+    var lines = [];
+    lines.push((job.service_type || 'Job') + ' — ' + (job.client_name || 'New client'));
+    if (job.address) lines.push(job.address);
+    if (job.job_date) lines.push('Date: ' + fmtDate(job.job_date));
+    if (job.notes) lines.push('Notes: ' + job.notes);
+    if (job.address) lines.push('Map: ' + mapsLink(job.address));
+    return lines.join('\n');
   }
 
   function renderJobs(jobs){
     var el = document.getElementById('jobs-body');
     var sorted = jobs.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
     el.innerHTML = sorted.map(function(j){
+      var worker = getWorker(j.assigned_worker_id);
+      var textLink = (isLive && worker && worker.phone)
+        ? '<a class="icon-btn" href="'+smsHref(worker.phone, buildWorkOrderMessage(j))+'" title="Text this job to '+worker.name+'">Text</a>'
+        : '';
       var actions = isLive
         ? '<div class="actions-cell">' +
             '<button class="icon-btn" type="button" data-action="edit" data-id="'+j.id+'">Edit</button>' +
             '<button class="icon-btn danger" type="button" data-action="delete" data-id="'+j.id+'">Delete</button>' +
+            textLink +
           '</div>'
         : '';
       return '<tr><td><b>'+j.client_name+'</b><div class="addr-sub">'+j.address+'</div></td>' +
@@ -758,35 +794,72 @@
     var el = document.getElementById('workers-list');
     if (!workers || !workers.length){ el.innerHTML = '<li class="worker-empty">No workers yet — add one above.</li>'; return; }
     el.innerHTML = workers.map(function(w){
-      var removeBtn = isLive ? '<button class="icon-btn danger" type="button" data-action="remove-worker" data-id="'+w.id+'">Remove</button>' : '';
-      return '<li><span>'+w.name+'</span>'+removeBtn+'</li>';
+      var actions = isLive
+        ? '<div class="worker-actions">' +
+            '<button class="icon-btn" type="button" data-action="edit-worker" data-id="'+w.id+'">Edit</button>' +
+            '<button class="icon-btn danger" type="button" data-action="remove-worker" data-id="'+w.id+'">Remove</button>' +
+          '</div>'
+        : '';
+      return '<li><span class="worker-name"><span>'+w.name+'</span>'+(w.phone ? '<span class="worker-phone">'+w.phone+'</span>' : '')+'</span>'+actions+'</li>';
     }).join('');
   }
 
   var workerForm = document.getElementById('worker-add-form');
   var workerError = document.getElementById('worker-error');
+  var workerSaveBtn = document.getElementById('worker-save-btn');
+  var workerCancelBtn = document.getElementById('worker-cancel-btn');
+
+  function closeWorkerForm(){
+    editingWorkerId = null;
+    workerForm.reset();
+    workerSaveBtn.textContent = '+ Add';
+    workerCancelBtn.hidden = true;
+    workerError.hidden = true;
+  }
+  function openWorkerFormForEdit(worker){
+    editingWorkerId = worker.id;
+    document.getElementById('worker-name-input').value = worker.name;
+    document.getElementById('worker-phone-input').value = worker.phone || '';
+    workerSaveBtn.textContent = 'Update';
+    workerCancelBtn.hidden = false;
+    document.getElementById('worker-name-input').focus();
+  }
+  workerCancelBtn.addEventListener('click', closeWorkerForm);
+
   workerForm.addEventListener('submit', async function(e){
     e.preventDefault();
     workerError.hidden = true;
     var name = document.getElementById('worker-name-input').value.trim();
+    var phone = document.getElementById('worker-phone-input').value.trim();
     if (!name) return;
     if (!supabaseClient || currentTenantId == null){
       workerError.textContent = "Can't save — sign in first.";
       workerError.hidden = false;
       return;
     }
-    var res = await supabaseClient.from('workers').insert({tenant_id: currentTenantId, name: name});
+    var fields = { tenant_id: currentTenantId, name: name, phone: phone || null };
+    var res = editingWorkerId != null
+      ? await supabaseClient.from('workers').update(fields).eq('id', editingWorkerId)
+      : await supabaseClient.from('workers').insert(fields);
     if (res.error){ workerError.textContent = 'Could not save: ' + res.error.message; workerError.hidden = false; return; }
-    workerForm.reset();
+    closeWorkerForm();
     render();
   });
   document.getElementById('workers-list').addEventListener('click', async function(e){
-    var btn = e.target.closest('[data-action="remove-worker"]');
-    if (!btn) return;
-    if (!confirm('Remove this worker? Jobs assigned to them will become Unassigned.')) return;
-    var res = await supabaseClient.from('workers').delete().eq('id', btn.dataset.id);
-    if (res.error){ alert('Could not remove: ' + res.error.message); return; }
-    render();
+    var editBtn = e.target.closest('[data-action="edit-worker"]');
+    if (editBtn){
+      var worker = getWorker(editBtn.dataset.id);
+      if (worker) openWorkerFormForEdit(worker);
+      return;
+    }
+    var removeBtn = e.target.closest('[data-action="remove-worker"]');
+    if (removeBtn){
+      if (!confirm('Remove this worker? Jobs assigned to them will become Unassigned.')) return;
+      var res = await supabaseClient.from('workers').delete().eq('id', removeBtn.dataset.id);
+      if (res.error){ alert('Could not remove: ' + res.error.message); return; }
+      if (editingWorkerId != null && String(editingWorkerId) === String(removeBtn.dataset.id)) closeWorkerForm();
+      render();
+    }
   });
 
   // ---- Calendar ----
@@ -1113,6 +1186,24 @@
     sel.value = current;
   }
 
+  function updateTextWorkerButtonVisibility(){
+    var worker = getWorker(document.getElementById('j-worker').value);
+    document.getElementById('job-text-worker-btn').hidden = !(worker && worker.phone);
+  }
+  document.getElementById('j-worker').addEventListener('change', updateTextWorkerButtonVisibility);
+  document.getElementById('job-text-worker-btn').addEventListener('click', function(){
+    var worker = getWorker(document.getElementById('j-worker').value);
+    if (!worker || !worker.phone) return;
+    var job = {
+      client_name: document.getElementById('j-client').value.trim() || '(client TBD)',
+      service_type: document.getElementById('j-service').value,
+      address: document.getElementById('j-address').value.trim(),
+      job_date: document.getElementById('j-date').value,
+      notes: document.getElementById('j-notes').value.trim()
+    };
+    window.location.href = smsHref(worker.phone, buildWorkOrderMessage(job));
+  });
+
   function openJobFormForAdd(prefillDate){
     editingJobId = null;
     jobForm.hidden = false; jobBtn.hidden = true;
@@ -1124,6 +1215,7 @@
     document.getElementById('j-tax').value = (currentProfile ? currentProfile.default_tax_rate : (DEMO_PROFILE.default_tax_rate || 0)) || 0;
     if (prefillDate) document.getElementById('j-date').value = prefillDate;
     updateLineItemsTotal();
+    updateTextWorkerButtonVisibility();
     document.getElementById('j-client').focus();
   }
   function openJobFormForEdit(job){
@@ -1141,6 +1233,7 @@
     document.getElementById('j-tax').value = job.tax_rate || 0;
     renderLineItemRows(getInvoiceItems(job));
     updateLineItemsTotal();
+    updateTextWorkerButtonVisibility();
     renderExistingPhotos(job.photos);
   }
   function closeJobForm(){
