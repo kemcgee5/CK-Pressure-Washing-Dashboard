@@ -430,7 +430,7 @@
   <section class="tab-panel" id="tab-invoices" hidden>
     <div class="card">
       <h2>Business Info</h2>
-      <p class="card-sub">Shows up on your invoices and the dashboard header. Only visible to you.</p>
+      <p class="card-sub">Shows up on your invoices and the dashboard header.</p>
       <form id="profile-form" class="add-form profile-form">
         <div class="field"><label for="p-name">Business Name</label><input id="p-name" type="text" placeholder="CK Pressure Washing"></div>
         <div class="field"><label for="p-phone">Phone</label><input id="p-phone" type="text" placeholder="(770) 555-0134"></div>
@@ -438,7 +438,7 @@
         <div class="field"><label for="p-address">Address</label><input id="p-address" type="text" placeholder="Dallas, GA"></div>
         <div class="field"><label for="p-tax">Default Tax Rate (%)</label><input id="p-tax" type="number" min="0" step="0.01" placeholder="0"></div>
         <div class="field span-2">
-          <label>Logo (optional) — shown on your dashboard only, never on invoices</label>
+          <label>Logo (optional) — shown on your dashboard and on invoices</label>
           <div class="logo-row">
             <img id="p-logo-preview" class="logo-preview" hidden alt="Logo preview">
             <input id="p-logo" type="file" accept="image/*">
@@ -450,6 +450,16 @@
         </div>
         <p id="profile-error" class="form-error" hidden></p>
       </form>
+      <div id="profile-readonly" class="profile-readonly" hidden>
+        <div class="logo-row" style="margin-bottom:12px;">
+          <img id="pr-logo" class="logo-preview" hidden alt="Logo">
+          <div>
+            <div id="pr-name" style="font-weight:700; font-size:15px;"></div>
+            <div id="pr-meta" style="font-size:12.5px; color:var(--muted); margin-top:2px;"></div>
+          </div>
+        </div>
+        <p class="form-hint" style="margin:0;">Only the account owner can edit business name, contact info, tax rate, and logo.</p>
+      </div>
     </div>
 
     <div class="card">
@@ -530,6 +540,8 @@
   }
 
   var currentTenantId = null; // resolved after sign-in, from the "memberships" table
+  var currentUserRole = null; // 'owner' or 'staff', resolved alongside currentTenantId
+  function canEditProfile(){ return !isLive || currentUserRole === 'owner'; }
   var isLive = false;
   var editingJobId = null;
   var editingLeadId = null;
@@ -840,14 +852,28 @@
 
   function renderProfileForm(profile){
     currentProfile = profile;
-    document.getElementById('p-name').value = profile ? (profile.business_name||'') : '';
-    document.getElementById('p-phone').value = profile ? (profile.phone||'') : '';
-    document.getElementById('p-email').value = profile ? (profile.email||'') : '';
-    document.getElementById('p-address').value = profile ? (profile.address||'') : '';
-    document.getElementById('p-tax').value = profile ? (profile.default_tax_rate||0) : 0;
-    var preview = document.getElementById('p-logo-preview');
-    if (profile && profile.logo_path){ preview.src = profile.logo_path; preview.hidden = false; }
-    else { preview.hidden = true; }
+    var canEdit = canEditProfile();
+    profileForm.hidden = !canEdit;
+    var readonlyBox = document.getElementById('profile-readonly');
+    readonlyBox.hidden = canEdit;
+
+    if (canEdit){
+      document.getElementById('p-name').value = profile ? (profile.business_name||'') : '';
+      document.getElementById('p-phone').value = profile ? (profile.phone||'') : '';
+      document.getElementById('p-email').value = profile ? (profile.email||'') : '';
+      document.getElementById('p-address').value = profile ? (profile.address||'') : '';
+      document.getElementById('p-tax').value = profile ? (profile.default_tax_rate||0) : 0;
+      var preview = document.getElementById('p-logo-preview');
+      if (profile && profile.logo_path){ preview.src = profile.logo_path; preview.hidden = false; }
+      else { preview.hidden = true; }
+    } else {
+      var prLogo = document.getElementById('pr-logo');
+      if (profile && profile.logo_path){ prLogo.src = profile.logo_path; prLogo.hidden = false; }
+      else { prLogo.hidden = true; }
+      document.getElementById('pr-name').textContent = (profile && profile.business_name) ? profile.business_name : 'CK Pressure Washing';
+      var metaLines = profile ? [profile.phone, profile.email, profile.address].filter(Boolean).join(' · ') : '';
+      document.getElementById('pr-meta').textContent = metaLines;
+    }
   }
 
   function setBadge(isLiveNow){
@@ -917,15 +943,17 @@
   }
 
   // Resolves the signed-in user's membership for THIS dashboard's tenant.
-  // Returns the tenant_id if they're a member, or null if they aren't (or aren't signed in).
-  async function resolveTenantForCurrentUser(){
+  // Returns {tenantId, role} if they're a member, or null if they aren't (or aren't signed in).
+  // role is 'owner' (full access, including Business Info/branding) or 'staff'
+  // (everything except editing business name, contact info, tax rate, and logo).
+  async function resolveMembershipForCurrentUser(){
     var membership = await supabaseClient
       .from('memberships')
-      .select('tenant_id, tenants!inner(slug)')
+      .select('tenant_id, role, tenants!inner(slug)')
       .eq('tenants.slug', TENANT_SLUG)
       .maybeSingle();
     if (membership.error || !membership.data) return null;
-    return membership.data.tenant_id;
+    return { tenantId: membership.data.tenant_id, role: membership.data.role || 'owner' };
   }
 
   async function checkAuthAndRender(){
@@ -940,12 +968,14 @@
     var session = sessionRes.data && sessionRes.data.session;
     if (!session){ showGate(); return; }
 
-    currentTenantId = await resolveTenantForCurrentUser();
-    if (currentTenantId == null){
+    var membership = await resolveMembershipForCurrentUser();
+    if (!membership){
       await supabaseClient.auth.signOut();
       showGate("That account doesn't have access to this dashboard. Signed out — contact your admin if this is unexpected.");
       return;
     }
+    currentTenantId = membership.tenantId;
+    currentUserRole = membership.role;
     showDashboard(session.user.email);
     render();
   }
@@ -971,6 +1001,7 @@
     signoutBtn.addEventListener('click', async function(){
       await supabaseClient.auth.signOut();
       currentTenantId = null;
+      currentUserRole = null;
       whoLine.hidden = true;
       showGate();
     });
@@ -1247,9 +1278,8 @@
     if (!job) return;
     var totals = computeInvoiceTotals(job);
     var profile = currentProfile || DEMO_PROFILE || {};
-    // Branding on the invoice is text-only, by design — the logo stays on the
-    // internal dashboard header and is never printed on the client-facing invoice.
     var bizName = profile.business_name || 'CK Pressure Washing';
+    var logoHtml = profile.logo_path ? '<img src="'+profile.logo_path+'" alt="">' : '';
     var metaLines = [profile.phone, profile.email, profile.address].filter(Boolean).join(' &middot; ');
     var linesHtml = totals.items.map(function(li){
       var amt = Number(li.quantity) * Number(li.unit_price);
@@ -1267,7 +1297,7 @@
 
     document.getElementById('invoice-sheet').innerHTML =
       '<div class="invoice-head">' +
-        '<div class="invoice-brand"><div class="biz-name">'+bizName+'</div><div class="biz-meta">'+metaLines+'</div></div>' +
+        '<div class="invoice-brand">'+logoHtml+'<div class="biz-name">'+bizName+'</div><div class="biz-meta">'+metaLines+'</div></div>' +
         '<div class="invoice-title"><h3>INVOICE</h3><div class="inv-meta">#'+job.id+'<br>'+fmtDate(job.job_date)+'</div></div>' +
       '</div>' +
       '<div class="invoice-billto"><div class="label">Bill To</div><div><b>'+job.client_name+'</b><br>'+job.address+'</div></div>' +
@@ -1321,6 +1351,11 @@
     profileError.hidden = true;
     if (!supabaseClient || currentTenantId == null){
       profileError.textContent = "Can't save — sign in first.";
+      profileError.hidden = false;
+      return;
+    }
+    if (!canEditProfile()){
+      profileError.textContent = "Only the account owner can edit business info.";
       profileError.hidden = false;
       return;
     }
