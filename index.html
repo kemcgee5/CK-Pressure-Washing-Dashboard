@@ -199,7 +199,7 @@
   table#jobs tr:last-child td, table#invoices-table tr:last-child td{ border-bottom:none; }
   table#jobs td.money, table#invoices-table td.money{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
   table#jobs td.date, table#invoices-table td.date{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; color:var(--ink-2); white-space:nowrap; }
-  .addr-sub{ font-size:11.5px; color:var(--muted); }
+  .addr-sub{ font-size:11.5px; font-weight:400; color:var(--muted); }
 
   .chip{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:999px; white-space:nowrap; }
   .chip::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
@@ -512,6 +512,7 @@
           <span id="job-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
         </div>
         <p id="job-error" class="form-error" hidden></p>
+        <p id="lead-convert-hint" class="form-hint" hidden>Prefilled from a lead. Saving this will link the lead to a customer record and move it out of Not Contacted.</p>
         <p id="job-text-hint" class="form-hint" hidden>On a phone, "Text Work Order" opens Messages pre-filled. On a desktop without a texting app set up, it may not open anything — use "Copy Message" and paste it into whatever you use to text instead.</p>
         <p class="form-hint">Photos upload to Supabase Storage automatically — leave either blank if you don't have one yet.</p>
       </form>
@@ -815,7 +816,10 @@
       <form id="lead-form" class="add-form leads-form" hidden>
         <p class="form-title" id="lead-form-title" style="grid-column:1/-1;">Add Lead</p>
         <div class="field span-2"><label for="l-address">Address</label><input id="l-address" type="text" placeholder="123 Stonewood Dr" required></div>
+        <div class="field"><label for="l-name">Contact Name</label><input id="l-name" type="text" placeholder="Who you spoke with"></div>
         <div class="field"><label for="l-sub">Subdivision</label><input id="l-sub" type="text" placeholder="Stonewood Creek" value="Stonewood Creek"></div>
+        <div class="field"><label for="l-phone">Phone</label><input id="l-phone" type="tel" placeholder="Optional"></div>
+        <div class="field"><label for="l-email">Email</label><input id="l-email" type="email" placeholder="Optional"></div>
         <div class="field">
           <label for="l-status">Status</label>
           <select id="l-status">
@@ -883,15 +887,23 @@
   <div id="invoice-sheet" class="invoice-sheet"></div>
 </div>
 
+<!-- Deployment settings live in config.js so this file never needs editing.
+     Set it up once; every future version of the dashboard drops straight in.
+     If config.js is missing, the page just runs in demo mode. -->
+<script src="config.js"></script>
+
 <script>
 (function(){
-  // ---- Fill these in from Supabase → Project Settings → API ----
-  var SUPABASE_URL = 'https://uanghzuketepjencbebw.supabase.co';
-  var SUPABASE_ANON_KEY = 'sb_publishable_kx-z6hgtOSgXEl6wzBm3kg_NJqfnZQI';
-  var PHOTO_BUCKET = 'job-photos';
+  // ---- Settings, from config.js (see that file to set them) ----
+  // Falls back to the literals below if config.js isn't present, so an older
+  // copy with the values pasted in directly still works.
+  var CFG = window.CK_CONFIG || {};
+  var SUPABASE_URL = CFG.supabaseUrl || 'https://uanghzuketepjencbebw.supabase.co';
+  var SUPABASE_ANON_KEY = CFG.supabaseKey || 'sb_publishable_kx-z6hgtOSgXEl6wzBm3kg_NJqfnZQI';
+  var PHOTO_BUCKET = CFG.photoBucket || 'job-photos';
   // This is the tenant row (see the "tenants" table) this deployed page belongs to.
   // Every read/write this page makes is scoped to this tenant once someone signs in.
-  var TENANT_SLUG = 'ck-pressure-washing';
+  var TENANT_SLUG = CFG.tenantSlug || 'ck-pressure-washing';
 
   var supabaseClient = null;
   if (SUPABASE_URL.indexOf('YOUR_') !== 0 && window.supabase) {
@@ -908,6 +920,7 @@
   var editingCustomerId = null;
   var editingExpenseId = null;
   var editingComplianceId = null;
+  var pendingLeadId = null; // set while a job is being created from a lead
   var pendingLogoFile = null;
   var currentProfile = null;
   var expandedCustomerId = null;
@@ -1011,10 +1024,10 @@
     {id:'k3', name:"Business license", due_date:monthOffset(+8), interval_months:12, notes:"County renewal"}
   ];
   var DEMO_LEADS = [
-    {id:'l1', address:"22 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"interested", source:"Door hanger", notes:"Asked for a quote next week"},
-    {id:'l2', address:"140 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"contacted", source:"Door hanger", notes:""},
-    {id:'l3', address:"9 Millbrook Ct", subdivision:"Millbrook", status:"not_contacted", source:"Referral", notes:""},
-    {id:'l4', address:"58 Hollow Bend Way", subdivision:"Hollow Bend", status:"scheduled", source:"Referral", notes:"Neighbor of Tom Riggins"}
+    {id:'l1', address:"22 Stonewood Creek Dr", contact_name:"Renee Baptiste", phone:"(770) 555-0193", email:"", subdivision:"Stonewood Creek", status:"interested", source:"Door hanger", customer_id:null, notes:"Asked for a quote next week — driveway + walkway"},
+    {id:'l2', address:"140 Stonewood Creek Dr", contact_name:"Glen Hardaway", phone:"(678) 555-0121", email:"glen.h@example.com", subdivision:"Stonewood Creek", status:"contacted", source:"Door hanger", customer_id:null, notes:""},
+    {id:'l3', address:"9 Millbrook Ct", contact_name:"", phone:"", email:"", subdivision:"Millbrook", status:"not_contacted", source:"Referral", customer_id:null, notes:""},
+    {id:'l4', address:"58 Hollow Bend Way", contact_name:"Yvette Crane", phone:"(770) 555-0154", email:"", subdivision:"Hollow Bend", status:"scheduled", source:"Referral", customer_id:null, notes:"Neighbor of Tom Riggins"}
   ];
   var DEMO_CHART = [450, 610, 225, 780, 540, 920, 700, 1150]; // revenue, last 8 weeks
   var DEMO_PROFILE = { business_name:"CK Pressure Washing", phone:"(770) 555-0134", email:"hello@ckpressurewashing.com", address:"Dallas, GA", logo_path:null, default_tax_rate:0, review_link:"", mileage_rate:0, default_service_interval_months:12 };
@@ -1849,14 +1862,26 @@
     var el = document.getElementById('lead-list');
     if (!leads.length){ el.innerHTML = '<li class="photo-none">No leads yet — add your first one above.</li>'; return; }
     el.innerHTML = leads.map(function(l){
-      var actions = isLive
-        ? '<div class="actions-cell">' +
-            '<button class="icon-btn" type="button" data-action="edit-lead" data-id="'+l.id+'">Edit</button>' +
-            '<button class="icon-btn danger" type="button" data-action="delete-lead" data-id="'+l.id+'">Delete</button>' +
-          '</div>'
-        : '';
+      // Create Job only prefills a form, so it's safe to show even in demo mode.
+      var actions = '<div class="actions-cell">' +
+          '<button class="icon-btn" type="button" data-action="lead-to-job" data-id="'+l.id+'" title="Start a job or quote with this lead\'s details filled in">Create Job</button>' +
+          (isLive
+            ? '<button class="icon-btn" type="button" data-action="edit-lead" data-id="'+l.id+'">Edit</button>' +
+              '<button class="icon-btn danger" type="button" data-action="delete-lead" data-id="'+l.id+'">Delete</button>'
+            : '') +
+        '</div>';
+      // Headline is whoever you spoke with, falling back to the address for
+      // leads that came straight off the parcel list with no name yet.
+      var title = l.contact_name ? esc(l.contact_name) : esc(l.address);
+      var subBits = [];
+      if (l.contact_name) subBits.push(esc(l.address));
+      if (l.phone) subBits.push(esc(l.phone));
+      if (l.email) subBits.push(esc(l.email));
+      if (l.notes) subBits.push(esc(l.notes));
+      var wonPill = l.customer_id ? ' <span class="due-pill ok">Customer</span>' : '';
       var meta = [l.subdivision, l.source].filter(Boolean).join(' · ');
-      return '<li><span class="lead-addr">'+esc(l.address)+(l.notes ? '<br><span class="addr-sub">'+esc(l.notes)+'</span>' : '')+'</span>' +
+      return '<li><span class="lead-addr">'+title+wonPill+
+          (subBits.length ? '<br><span class="addr-sub">'+subBits.join(' · ')+'</span>' : '')+'</span>' +
         '<span class="lead-sub"><span>'+esc(meta)+'</span><span style="display:flex;align-items:center;gap:8px;"><span class="chip '+l.status+'">'+LEAD_LABEL[l.status]+'</span>'+actions+'</span></span></li>';
     }).join('');
   }
@@ -2042,8 +2067,17 @@
 
   function setBadge(isLiveNow){
     var badge = document.getElementById('data-badge');
-    if (isLiveNow){ badge.textContent = 'Live'; badge.classList.add('is-live'); }
-    else { badge.textContent = 'Demo'; badge.classList.remove('is-live'); }
+    if (isLiveNow){
+      badge.textContent = 'Live';
+      badge.title = 'Connected to Supabase — this is your real data.';
+      badge.classList.add('is-live');
+    } else {
+      badge.textContent = 'Demo';
+      badge.title = supabaseClient
+        ? 'Showing sample data — could not load your data from Supabase.'
+        : 'Showing sample data — add your Project URL and key to config.js to go live.';
+      badge.classList.remove('is-live');
+    }
   }
 
   async function fetchLive(){
@@ -2383,6 +2417,8 @@
 
   function openJobFormForAdd(prefillDate){
     editingJobId = null;
+    pendingLeadId = null;
+    document.getElementById('lead-convert-hint').hidden = true;
     jobForm.hidden = false; jobBtn.hidden = true;
     document.getElementById('job-form-title').textContent = 'Add Job';
     jobForm.querySelector('.btn-save').textContent = 'Save Job';
@@ -2399,6 +2435,8 @@
   }
   function openJobFormForEdit(job){
     editingJobId = job.id;
+    pendingLeadId = null;
+    document.getElementById('lead-convert-hint').hidden = true;
     jobForm.hidden = false; jobBtn.hidden = true;
     document.getElementById('job-form-title').textContent = 'Edit Job — ' + job.client_name;
     jobForm.querySelector('.btn-save').textContent = 'Update Job';
@@ -2427,6 +2465,8 @@
   function closeJobForm(){
     jobForm.hidden = true; jobForm.reset(); jobBtn.hidden = false; jobError.hidden = true;
     editingJobId = null;
+    pendingLeadId = null;
+    document.getElementById('lead-convert-hint').hidden = true;
     renderExistingPhotos(null);
   }
 
@@ -2442,6 +2482,62 @@
     switchTab('home');
     openJobFormForAdd(dateStr);
     setTimeout(function(){ jobForm.scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+  }
+
+  // ---- Lead → job ----
+  // Opens the job form prefilled from the lead. The lead id is held until the
+  // job actually saves, then the lead gets linked to the customer that job
+  // created and its status moves forward — so the lead keeps its source
+  // attribution instead of becoming an unrelated customer record.
+  function convertLeadToJob(leadId){
+    var lead = (currentLeads||[]).find(function(l){ return String(l.id) === String(leadId); });
+    if (!lead) return;
+    switchTab('home');
+    openJobFormForAdd();       // resets form state, so claim the lead after it
+    pendingLeadId = lead.id;
+
+    // If this lead is already tied to a customer (or the address matches one),
+    // pick that customer so the job attaches to their existing history.
+    var existing = null;
+    if (lead.customer_id) existing = getCustomer(lead.customer_id);
+    if (!existing && lead.contact_name){
+      existing = (currentCustomers||[]).find(function(c){ return c.name.toLowerCase() === String(lead.contact_name).toLowerCase(); });
+    }
+    if (!existing && lead.address){
+      existing = (currentCustomers||[]).find(function(c){
+        return c.address && c.address.trim().toLowerCase() === lead.address.trim().toLowerCase();
+      });
+    }
+
+    document.getElementById('j-customer').value = existing ? existing.id : '';
+    document.getElementById('j-client').value = existing ? existing.name : (lead.contact_name || '');
+    document.getElementById('j-address').value = lead.address || '';
+    document.getElementById('j-notes').value = lead.notes || '';
+    // A lead is a prospect, so start as a quote rather than a booked job.
+    document.getElementById('j-status').value = 'quoted';
+    document.getElementById('j-date').value = todayYmd();
+
+    var title = document.getElementById('job-form-title');
+    title.textContent = 'New Job from Lead — ' + (lead.contact_name || lead.address);
+    document.getElementById('lead-convert-hint').hidden = false;
+
+    setTimeout(function(){ jobForm.scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+    var focusField = document.getElementById(existing || lead.contact_name ? 'j-service' : 'j-client');
+    focusField.focus();
+  }
+
+  // After a converted job saves, tie the lead to the resulting customer and
+  // move it along: a quote means they're interested, anything further is booked.
+  async function finishLeadConversion(customerId, jobStatus){
+    if (pendingLeadId == null) return;
+    var lead = (currentLeads||[]).find(function(l){ return String(l.id) === String(pendingLeadId); });
+    var leadId = pendingLeadId;
+    pendingLeadId = null;
+    if (!lead || !supabaseClient) return;
+    var updates = { status: jobStatus === 'quoted' ? 'interested' : 'scheduled' };
+    if (customerId) updates.customer_id = customerId;
+    var res = await supabaseClient.from('leads').update(updates).eq('id', leadId);
+    if (res.error) console.error('Could not update lead after conversion:', res.error.message);
   }
 
   async function uploadPhoto(file, kind, jobId){
@@ -2487,13 +2583,24 @@
       // Link to the chosen customer, or create one on the fly so every job has a
       // real customer record behind it (that's what repeat-service tracking runs on).
       var customerId = document.getElementById('j-customer').value || null;
+      // When this job came from a lead, the lead's contact details ride along
+      // onto the customer record being created.
+      var sourceLead = pendingLeadId != null
+        ? (currentLeads||[]).find(function(l){ return String(l.id) === String(pendingLeadId); })
+        : null;
       if (!customerId){
         var existing = (currentCustomers||[]).find(function(c){ return c.name.toLowerCase() === clientName.toLowerCase(); });
         if (existing){
           customerId = existing.id;
         } else if (clientName){
           var newCust = await supabaseClient.from('customers')
-            .insert({ tenant_id: currentTenantId, name: clientName, address: clientAddress || null })
+            .insert({
+              tenant_id: currentTenantId,
+              name: clientName,
+              address: clientAddress || null,
+              phone: sourceLead ? (sourceLead.phone || null) : null,
+              email: sourceLead ? (sourceLead.email || null) : null
+            })
             .select().single();
           if (newCust.error) throw new Error('Could not create customer: ' + newCust.error.message);
           customerId = newCust.data.id;
@@ -2552,6 +2659,8 @@
         var afterUrl = await uploadPhoto(afterFile, 'after', jobId);
         await supabaseClient.from('job_photos').insert({tenant_id: currentTenantId, job_id: jobId, kind:'after', photo_url: afterUrl});
       }
+
+      await finishLeadConversion(customerId, jobFields.status);
 
       closeJobForm();
       render();
@@ -2739,6 +2848,9 @@
     document.getElementById('lead-form-title').textContent = 'Edit Lead';
     leadForm.querySelector('.btn-save').textContent = 'Update Lead';
     document.getElementById('l-address').value = lead.address;
+    document.getElementById('l-name').value = lead.contact_name || '';
+    document.getElementById('l-phone').value = lead.phone || '';
+    document.getElementById('l-email').value = lead.email || '';
     document.getElementById('l-sub').value = lead.subdivision || '';
     document.getElementById('l-status').value = lead.status;
     document.getElementById('l-source').value = lead.source || '';
@@ -2754,6 +2866,8 @@
   }
 
   document.getElementById('lead-list').addEventListener('click', function(e){
+    var convertBtn = e.target.closest('[data-action="lead-to-job"]');
+    if (convertBtn){ convertLeadToJob(convertBtn.dataset.id); return; }
     var editBtn = e.target.closest('[data-action="edit-lead"]');
     if (editBtn){
       var lead = currentLeads.find(function(l){ return String(l.id) === String(editBtn.dataset.id); });
@@ -2780,6 +2894,9 @@
     var leadFields = {
       tenant_id: currentTenantId,
       address: document.getElementById('l-address').value.trim(),
+      contact_name: document.getElementById('l-name').value.trim() || null,
+      phone: document.getElementById('l-phone').value.trim() || null,
+      email: document.getElementById('l-email').value.trim() || null,
       subdivision: document.getElementById('l-sub').value.trim(),
       status: document.getElementById('l-status').value,
       source: document.getElementById('l-source').value || null,
