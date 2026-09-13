@@ -846,6 +846,10 @@
         </div>
         <p id="lead-error" class="form-error" hidden></p>
       </form>
+      <div class="gallery-filters">
+        <label for="lead-search" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Search</label>
+        <input id="lead-search" type="text" placeholder="Name, address, phone, email, notes…" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface-2);color:var(--ink);flex:1;min-width:200px;max-width:360px;">
+      </div>
       <ul class="lead-list" id="lead-list"></ul>
     </div>
 
@@ -928,6 +932,7 @@
   var expandedCustomerId = null;
   var pnlPeriod = 'year';
   var galleryService = '';
+  var leadSearchQuery = '';
   var calCursor = new Date(); calCursor.setDate(1); // first-of-month cursor for the calendar view
 
   var STATUS_LABEL = { quoted:"Quoted", scheduled:"Scheduled", completed:"Completed", paid:"Paid", declined:"Declined" };
@@ -1863,7 +1868,13 @@
   function renderLeads(leads){
     var el = document.getElementById('lead-list');
     if (!leads.length){ el.innerHTML = '<li class="photo-none">No leads yet — add your first one above.</li>'; return; }
-    el.innerHTML = leads.map(function(l){
+    var q = leadSearchQuery.trim().toLowerCase();
+    var visible = !q ? leads : leads.filter(function(l){
+      return [l.contact_name, l.address, l.phone, l.email, l.notes, l.subdivision, l.source]
+        .filter(Boolean).join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    if (!visible.length){ el.innerHTML = '<li class="photo-none">No leads match "'+esc(leadSearchQuery.trim())+'".</li>'; return; }
+    el.innerHTML = visible.map(function(l){
       // Create Job only prefills a form, so it's safe to show even in demo mode.
       var actions = '<div class="actions-cell">' +
           '<button class="icon-btn" type="button" data-action="lead-to-job" data-id="'+l.id+'" title="Start a job or quote with this lead\'s details filled in">Create Job</button>' +
@@ -3186,6 +3197,12 @@
   document.getElementById('gal-service').addEventListener('change', function(){
     galleryService = this.value;
     renderGallery();
+  });
+
+  // ---- Lead search ----
+  document.getElementById('lead-search').addEventListener('input', function(){
+    leadSearchQuery = this.value;
+    renderLeads(currentLeads);
   });
 
   // ---- Today's route ----
