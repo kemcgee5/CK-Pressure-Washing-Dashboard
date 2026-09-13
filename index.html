@@ -142,10 +142,12 @@
 
   /* ---- Workers ---- */
   .worker-row-form{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-  .worker-row-form input{ font-family:"IBM Plex Sans", sans-serif; font-size:13.5px; color:var(--ink);
+  .worker-row-form input, .worker-row-form select{ font-family:"IBM Plex Sans", sans-serif; font-size:13.5px; color:var(--ink);
     background:var(--surface-2); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px; }
   .worker-row-form input[type="text"]:first-of-type{ flex:2; min-width:120px; }
   .worker-row-form input[type="tel"]{ flex:1; min-width:120px; }
+  .worker-row-form select{ flex:0 0 auto; min-width:110px; }
+  .worker-row-form input[type="number"]{ flex:0 0 90px; width:90px; }
   .worker-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
   .worker-list li{ display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid var(--line); font-size:13.5px; gap:10px; }
   .worker-list li:last-child{ border-bottom:none; padding-bottom:0; }
@@ -214,6 +216,87 @@
   .photo-thumbs a{ display:block; width:34px; height:34px; border-radius:5px; overflow:hidden; border:1px solid var(--line-strong); }
   .photo-thumbs img{ width:100%; height:100%; object-fit:cover; display:block; }
   .photo-none{ font-size:11.5px; color:var(--muted); }
+
+  /* ---- Generic compact table, reused across the new sections ---- */
+  table.mini{ width:100%; border-collapse:collapse; }
+  table.mini th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);
+    font-weight:700; padding:0 8px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  table.mini td{ padding:9px 8px; font-size:13px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  table.mini tr:last-child td{ border-bottom:none; }
+  table.mini td.num, table.mini th.num{ text-align:right; font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  table.mini td.sub{ color:var(--muted); font-size:12px; }
+  table.mini td.dt{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; color:var(--ink-2); white-space:nowrap; }
+  table.mini tr.total-row td{ border-top:1px solid var(--line-strong); border-bottom:none; font-weight:700; padding-top:11px; }
+  table.mini .pos{ color:var(--good); }
+  table.mini .neg{ color:var(--critical); }
+  .table-scroll{ overflow-x:auto; }
+  .empty-note{ font-size:12.5px; color:var(--muted); padding:10px 2px; }
+
+  /* ---- Segmented period picker ---- */
+  .seg{ display:inline-flex; border:1px solid var(--line-strong); border-radius:8px; overflow:hidden; }
+  .seg button{ font-family:"IBM Plex Sans", sans-serif; font-size:12px; font-weight:600; color:var(--ink-2);
+    background:var(--surface-2); border:none; border-right:1px solid var(--line); padding:6px 12px; cursor:pointer; }
+  .seg button:last-child{ border-right:none; }
+  .seg button.active{ background:var(--water); color:#fff; }
+
+  /* ---- Home alerts ---- */
+  .alert-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .alert-list li{ display:flex; align-items:flex-start; gap:10px; padding-bottom:9px; border-bottom:1px solid var(--line); }
+  .alert-list li:last-child{ border-bottom:none; padding-bottom:0; }
+  .alert-dot{ width:8px; height:8px; border-radius:50%; margin-top:6px; flex-shrink:0; }
+  .alert-dot.warn{ background:var(--sun); }
+  .alert-dot.bad{ background:var(--critical); }
+  .alert-dot.info{ background:var(--water); }
+  .alert-body{ flex:1; font-size:13px; }
+  .alert-body .sub{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .alert-go{ flex-shrink:0; }
+  .all-clear{ font-size:13px; color:var(--good); display:flex; align-items:center; gap:8px; }
+
+  /* ---- Customers ---- */
+  .cust-name{ font-weight:600; }
+  .cust-contact{ font-size:11.5px; color:var(--muted); }
+  .due-pill{ display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px;
+    background:var(--sun-soft); color:var(--sun-ink); white-space:nowrap; }
+  .due-pill.ok{ background:var(--good-soft); color:var(--good); }
+  .due-pill.none{ background:var(--line); color:var(--ink-2); }
+  .cust-history{ background:var(--page); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin:2px 0 10px; }
+  .cust-history h4{ margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }
+
+  /* ---- Route list ---- */
+  .route-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .route-list li{ display:flex; gap:12px; align-items:flex-start; padding-bottom:10px; border-bottom:1px solid var(--line); }
+  .route-list li:last-child{ border-bottom:none; padding-bottom:0; }
+  .route-time{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; font-weight:600; color:var(--water);
+    min-width:64px; flex-shrink:0; padding-top:1px; }
+  .route-body{ flex:1; font-size:13.5px; }
+  .route-body .sub{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .route-actions{ display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap; }
+
+  /* ---- Photo gallery ---- */
+  .gallery-filters{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+  .gallery-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px; }
+  .gallery-card{ background:var(--page); border:1px solid var(--line); border-radius:10px; padding:10px; }
+  .gallery-pair{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .gallery-pair.single{ grid-template-columns:1fr; }
+  .gallery-pair figure{ margin:0; }
+  .gallery-pair img{ width:100%; height:96px; object-fit:cover; border-radius:6px; display:block; border:1px solid var(--line); }
+  .gallery-pair figcaption{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-top:3px; text-align:center; }
+  .gallery-meta{ margin-top:8px; font-size:12.5px; font-weight:600; }
+  .gallery-meta .sub{ font-size:11.5px; font-weight:400; color:var(--muted); margin-top:1px; }
+
+  /* ---- Inline row forms (expenses, mileage, compliance) ---- */
+  form.row-form{ display:grid; gap:10px; background:var(--page); border:1px solid var(--line);
+    border-radius:10px; padding:14px; margin:0 0 16px; grid-template-columns:repeat(4,1fr); }
+  form.row-form .field.span-2{ grid-column:span 2; }
+  form.row-form .form-actions{ grid-column:1/-1; }
+  @media (max-width:760px){ form.row-form{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:520px){ form.row-form{ grid-template-columns:1fr; } form.row-form .field.span-2{ grid-column:span 1; } }
+
+  .chip.declined{ background:var(--critical-soft); color:var(--critical); }
+  .cal-chip.declined{ background:var(--critical-soft); color:var(--critical); text-decoration:line-through; }
+  .cal-chip-time{ font-family:"IBM Plex Mono", monospace; opacity:.75; }
+
+  .card-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
   footer.note{ margin-top:20px; font-size:12px; color:var(--muted); text-align:center; }
 
@@ -325,14 +408,22 @@
   <nav class="tabs" id="tabs">
     <button class="tab-btn active" type="button" data-tab="home">Home</button>
     <button class="tab-btn" type="button" data-tab="schedule">Schedule</button>
+    <button class="tab-btn" type="button" data-tab="customers">Customers</button>
     <button class="tab-btn" type="button" data-tab="invoices">Invoices</button>
-    <button class="tab-btn" type="button" data-tab="financials">Financials</button>
-    <button class="tab-btn" type="button" data-tab="targeting">Neighborhood Targeting</button>
+    <button class="tab-btn" type="button" data-tab="money">Money</button>
+    <button class="tab-btn" type="button" data-tab="targeting">Leads</button>
+    <button class="tab-btn" type="button" data-tab="photos">Photos</button>
   </nav>
 
   <!-- ============== HOME ============== -->
   <section class="tab-panel" id="tab-home">
     <div class="kpis" id="kpis"></div>
+
+    <div class="card">
+      <h2>Needs Attention</h2>
+      <p class="card-sub">Money owed to you, customers due again, renewals coming up, and reviews you haven't asked for.</p>
+      <ul class="alert-list" id="alert-list"></ul>
+    </div>
 
     <div class="card">
       <div class="card-head">
@@ -341,6 +432,10 @@
       </div>
       <form id="job-form" class="add-form" hidden>
         <p class="form-title" id="job-form-title">Add Job</p>
+        <div class="field span-2">
+          <label for="j-customer">Customer</label>
+          <select id="j-customer"><option value="">+ New customer</option></select>
+        </div>
         <div class="field span-2"><label for="j-client">Client Name</label><input id="j-client" type="text" required></div>
         <div class="field span-2"><label for="j-address">Address</label><input id="j-address" type="text" required></div>
         <div class="field">
@@ -351,6 +446,8 @@
           </select>
         </div>
         <div class="field"><label for="j-date">Date</label><input id="j-date" type="date" required></div>
+        <div class="field"><label for="j-time">Start Time</label><input id="j-time" type="time"></div>
+        <div class="field"><label for="j-duration">Duration (min)</label><input id="j-duration" type="number" min="0" step="15" placeholder="90"></div>
         <div class="field">
           <label for="j-status">Status</label>
           <select id="j-status">
@@ -358,12 +455,15 @@
             <option value="scheduled">Scheduled</option>
             <option value="completed">Completed</option>
             <option value="paid">Paid</option>
+            <option value="declined">Declined</option>
           </select>
         </div>
         <div class="field">
           <label for="j-worker">Assigned Worker</label>
           <select id="j-worker"><option value="">Unassigned</option></select>
         </div>
+        <div class="field"><label for="j-labor-hours">Labor Hours</label><input id="j-labor-hours" type="number" min="0" step="0.25" placeholder="0"></div>
+        <div class="field"><label for="j-labor-cost">Labor Cost</label><input id="j-labor-cost" type="text" readonly placeholder="$0"></div>
 
         <div class="field span-2" style="grid-column:1/-1;">
           <label>Pricing Breakdown</label>
@@ -376,6 +476,28 @@
             <div class="totals-row"><span>Tax %</span><input id="j-tax" type="number" min="0" step="0.01" value="0"><b id="j-tax-amt">$0</b></div>
             <div class="totals-row grand"><span>Total</span><b id="j-total">$0</b></div>
           </div>
+        </div>
+
+        <div class="field">
+          <label for="j-paid-date">Date Paid</label>
+          <input id="j-paid-date" type="date">
+        </div>
+        <div class="field">
+          <label for="j-payment-method">Payment Method</label>
+          <select id="j-payment-method">
+            <option value="">—</option>
+            <option value="Cash">Cash</option>
+            <option value="Check">Check</option>
+            <option value="Zelle">Zelle</option>
+            <option value="Cash App">Cash App</option>
+            <option value="Venmo">Venmo</option>
+            <option value="Card">Card</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field span-2">
+          <label for="j-amount-paid">Amount Received (leave blank if paid in full)</label>
+          <input id="j-amount-paid" type="number" min="0" step="0.01" placeholder="Deposit or partial payment">
         </div>
 
         <div id="existing-photos" class="field span-2" hidden></div>
@@ -406,15 +528,28 @@
   <section class="tab-panel" id="tab-schedule" hidden>
     <div class="card">
       <h2>Workers</h2>
-      <p class="card-sub">Add the people you assign jobs to. Phone number is optional — add it to be able to text them the work order.</p>
+      <p class="card-sub">Add the people you assign jobs to. Phone lets you text them the work order; pay rate lets the dashboard work out what each job actually costs you.</p>
       <form id="worker-add-form" class="worker-row-form">
         <input id="worker-name-input" type="text" placeholder="Worker name" required>
         <input id="worker-phone-input" type="tel" placeholder="Phone (optional)">
+        <select id="worker-pay-type">
+          <option value="hourly">Hourly</option>
+          <option value="flat">Flat per job</option>
+        </select>
+        <input id="worker-pay-rate" type="number" min="0" step="0.01" placeholder="Rate">
         <button type="submit" id="worker-save-btn" class="btn-add">+ Add</button>
         <button type="button" id="worker-cancel-btn" class="btn-cancel" hidden>Cancel</button>
       </form>
       <ul class="worker-list" id="workers-list"></ul>
       <p id="worker-error" class="form-error" hidden></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Today's Route</h2><p class="card-sub">Everything on the books for today, in time order.</p></div>
+        <button type="button" id="route-copy-btn" class="btn-add small">Copy Route</button>
+      </div>
+      <ul class="route-list" id="route-list"></ul>
     </div>
 
     <div class="card">
@@ -437,6 +572,38 @@
     </div>
   </section>
 
+  <!-- ============== CUSTOMERS ============== -->
+  <section class="tab-panel" id="tab-customers" hidden>
+    <div class="kpis" id="cust-kpis"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Customers</h2><p class="card-sub">Everyone you've worked for, what they've spent, and who's due for service again.</p></div>
+        <button id="cust-add-btn" class="btn-add" type="button">+ Customer</button>
+      </div>
+      <form id="cust-form" class="row-form" hidden>
+        <p class="form-title" id="cust-form-title">Add Customer</p>
+        <div class="field span-2"><label for="c-name">Name</label><input id="c-name" type="text" required></div>
+        <div class="field span-2"><label for="c-address">Address</label><input id="c-address" type="text"></div>
+        <div class="field"><label for="c-phone">Phone</label><input id="c-phone" type="tel"></div>
+        <div class="field"><label for="c-email">Email</label><input id="c-email" type="email"></div>
+        <div class="field"><label for="c-interval">Re-service Every (months)</label><input id="c-interval" type="number" min="0" step="1" placeholder="Business default"></div>
+        <div class="field"><label for="c-notes">Notes</label><input id="c-notes" type="text" placeholder="Gate code, dogs, preferences…"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Customer</button>
+          <button type="button" id="cust-cancel" class="btn-cancel">Cancel</button>
+        </div>
+        <p id="cust-error" class="form-error" hidden></p>
+      </form>
+      <div class="table-scroll">
+        <table class="mini" id="cust-table">
+          <thead><tr><th>Customer</th><th class="num">Jobs</th><th class="num">Lifetime Value</th><th>Last Service</th><th>Next Due</th><th></th></tr></thead>
+          <tbody id="cust-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ============== INVOICES ============== -->
   <section class="tab-panel" id="tab-invoices" hidden>
     <div class="card">
@@ -448,6 +615,9 @@
         <div class="field"><label for="p-email">Email</label><input id="p-email" type="email" placeholder="hello@ckpressurewashing.com"></div>
         <div class="field"><label for="p-address">Address</label><input id="p-address" type="text" placeholder="Dallas, GA"></div>
         <div class="field"><label for="p-tax">Default Tax Rate (%)</label><input id="p-tax" type="number" min="0" step="0.01" placeholder="0"></div>
+        <div class="field"><label for="p-interval">Re-service Reminder (months)</label><input id="p-interval" type="number" min="0" step="1" placeholder="12"></div>
+        <div class="field"><label for="p-mileage">Mileage Rate ($/mile)</label><input id="p-mileage" type="number" min="0" step="0.001" placeholder="Current IRS standard rate"></div>
+        <div class="field span-2"><label for="p-review">Google Review Link</label><input id="p-review" type="url" placeholder="https://g.page/r/…/review"></div>
         <div class="field span-2">
           <label>Logo (optional) — shown on your dashboard and on invoices</label>
           <div class="logo-row">
@@ -474,24 +644,163 @@
     </div>
 
     <div class="card">
-      <h2>Invoices</h2>
-      <p class="card-sub">Every job as a printable, branded invoice.</p>
+      <div class="card-head">
+        <div><h2>Business Dates</h2><p class="card-sub">Insurance, licenses, and registrations — so a renewal never sneaks up on you.</p></div>
+        <button id="comp-add-btn" class="btn-add small" type="button">+ Date</button>
+      </div>
+      <form id="comp-form" class="row-form" hidden>
+        <p class="form-title" id="comp-form-title">Add Business Date</p>
+        <div class="field span-2"><label for="cm-name">What is it</label><input id="cm-name" type="text" placeholder="General liability insurance" required></div>
+        <div class="field"><label for="cm-due">Due / Expires</label><input id="cm-due" type="date"></div>
+        <div class="field"><label for="cm-interval">Renews Every (months)</label><input id="cm-interval" type="number" min="0" step="1" placeholder="12"></div>
+        <div class="field span-2"><label for="cm-notes">Notes</label><input id="cm-notes" type="text" placeholder="Policy number, who to call…"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save</button>
+          <button type="button" id="comp-cancel" class="btn-cancel">Cancel</button>
+        </div>
+        <p id="comp-error" class="form-error" hidden></p>
+      </form>
+      <div class="table-scroll">
+        <table class="mini" id="comp-table">
+          <thead><tr><th>Item</th><th>Due</th><th>Status</th><th></th></tr></thead>
+          <tbody id="comp-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Invoices &amp; Estimates</h2><p class="card-sub">Quoted jobs print as an estimate; everything else prints as an invoice.</p></div>
+        <div class="card-actions">
+          <span id="winrate-note" class="card-sub" style="margin:0;"></span>
+        </div>
+      </div>
       <table id="invoices-table">
-        <thead><tr><th>Invoice</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Doc</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
         <tbody id="invoices-body"></tbody>
       </table>
     </div>
   </section>
 
-  <!-- ============== FINANCIALS ============== -->
-  <section class="tab-panel" id="tab-financials" hidden>
+  <!-- ============== MONEY ============== -->
+  <section class="tab-panel" id="tab-money" hidden>
     <div class="kpis" id="fin-kpis"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Profit &amp; Loss</h2><p class="card-sub">What came in, what went out, and what you actually kept.</p></div>
+        <div class="seg" id="pnl-period">
+          <button type="button" data-period="month">This Month</button>
+          <button type="button" data-period="quarter">This Quarter</button>
+          <button type="button" data-period="year" class="active">This Year</button>
+          <button type="button" data-period="all">All Time</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="mini" id="pnl-table"><tbody id="pnl-body"></tbody></table>
+      </div>
+      <p class="form-hint" style="margin-top:12px;">Revenue counts jobs marked Paid. Mileage is an estimated tax deduction, not cash out of pocket — it's listed separately so it doesn't distort your real cash profit.</p>
+    </div>
+
     <div class="card">
       <h2>Revenue — Last 8 Weeks</h2>
       <p class="card-sub">Completed and paid jobs, by the week they were done. Hover a bar for the exact amount.</p>
       <div class="chart-area">
         <svg id="chart" viewBox="0 0 700 180" preserveAspectRatio="none"></svg>
         <div id="tooltip"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Profit by Service</h2>
+      <p class="card-sub">Which services actually make money, after job costs and labor.</p>
+      <div class="table-scroll">
+        <table class="mini" id="service-table">
+          <thead><tr><th>Service</th><th class="num">Jobs</th><th class="num">Revenue</th><th class="num">Job Costs</th><th class="num">Labor</th><th class="num">Profit</th><th class="num">Margin</th></tr></thead>
+          <tbody id="service-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Money Owed to You</h2>
+      <p class="card-sub">Completed jobs that haven't been paid, by how long they've been sitting.</p>
+      <div class="table-scroll">
+        <table class="mini" id="aging-table">
+          <thead><tr><th>Client</th><th>Job Date</th><th class="num">Days Out</th><th class="num">Balance</th><th></th></tr></thead>
+          <tbody id="aging-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Expenses</h2><p class="card-sub">Tie a cost to a job to see true job profit, or leave the job blank for general overhead.</p></div>
+        <button id="exp-add-btn" class="btn-add" type="button">+ Expense</button>
+      </div>
+      <form id="exp-form" class="row-form" hidden>
+        <p class="form-title" id="exp-form-title">Add Expense</p>
+        <div class="field"><label for="e-date">Date</label><input id="e-date" type="date" required></div>
+        <div class="field">
+          <label for="e-category">Category</label>
+          <select id="e-category">
+            <option>Chemicals</option><option>Fuel</option><option>Equipment</option>
+            <option>Repairs &amp; Maintenance</option><option>Insurance</option><option>Vehicle</option>
+            <option>Licenses &amp; Permits</option><option>Marketing</option><option>Subcontractor / Help</option>
+            <option>Supplies</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label for="e-amount">Amount</label><input id="e-amount" type="number" min="0" step="0.01" required></div>
+        <div class="field"><label for="e-job">Job (optional)</label><select id="e-job"><option value="">General overhead</option></select></div>
+        <div class="field span-2"><label for="e-vendor">Vendor</label><input id="e-vendor" type="text" placeholder="Home Depot, Shell…"></div>
+        <div class="field span-2"><label for="e-notes">Notes</label><input id="e-notes" type="text" placeholder="Optional"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Expense</button>
+          <button type="button" id="exp-cancel" class="btn-cancel">Cancel</button>
+        </div>
+        <p id="exp-error" class="form-error" hidden></p>
+      </form>
+      <div class="table-scroll">
+        <table class="mini" id="exp-table">
+          <thead><tr><th>Date</th><th>Category</th><th>Vendor</th><th>Job</th><th class="num">Amount</th><th></th></tr></thead>
+          <tbody id="exp-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Mileage</h2><p class="card-sub">Business miles you can deduct. Set your rate in Business Info.</p></div>
+        <button id="mile-add-btn" class="btn-add small" type="button">+ Miles</button>
+      </div>
+      <form id="mile-form" class="row-form" hidden>
+        <p class="form-title">Log Miles</p>
+        <div class="field"><label for="m-date">Date</label><input id="m-date" type="date" required></div>
+        <div class="field"><label for="m-miles">Miles</label><input id="m-miles" type="number" min="0" step="0.1" required></div>
+        <div class="field"><label for="m-job">Job (optional)</label><select id="m-job"><option value="">Not job-specific</option></select></div>
+        <div class="field"><label for="m-purpose">Purpose</label><input id="m-purpose" type="text" placeholder="Supply run, drive to job…"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Miles</button>
+          <button type="button" id="mile-cancel" class="btn-cancel">Cancel</button>
+        </div>
+        <p id="mile-error" class="form-error" hidden></p>
+      </form>
+      <div class="table-scroll">
+        <table class="mini" id="mile-table">
+          <thead><tr><th>Date</th><th>Purpose</th><th>Job</th><th class="num">Miles</th><th class="num">Deduction</th><th></th></tr></thead>
+          <tbody id="mile-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Export for Your Accountant</h2>
+      <p class="card-sub">Downloads a spreadsheet-ready CSV of everything in that table.</p>
+      <div class="card-actions">
+        <button type="button" class="btn-add small" data-export="jobs">Jobs</button>
+        <button type="button" class="btn-add small" data-export="expenses">Expenses</button>
+        <button type="button" class="btn-add small" data-export="customers">Customers</button>
+        <button type="button" class="btn-add small" data-export="mileage">Mileage</button>
       </div>
     </div>
   </section>
@@ -517,7 +826,16 @@
             <option value="not_interested">Not Interested</option>
           </select>
         </div>
-        <div class="field span-2"><label for="l-notes">Notes</label><input id="l-notes" type="text" placeholder="Optional"></div>
+        <div class="field">
+          <label for="l-source">Where It Came From</label>
+          <select id="l-source">
+            <option value="">—</option>
+            <option>Door hanger</option><option>Yard sign</option><option>Referral</option>
+            <option>Facebook</option><option>Nextdoor</option><option>Google</option>
+            <option>Drive-by</option><option>Repeat customer</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label for="l-notes">Notes</label><input id="l-notes" type="text" placeholder="Optional"></div>
         <div class="form-actions">
           <button type="submit" class="btn-save">Save Lead</button>
           <button type="button" id="lead-cancel" class="btn-cancel">Cancel</button>
@@ -525,6 +843,36 @@
         <p id="lead-error" class="form-error" hidden></p>
       </form>
       <ul class="lead-list" id="lead-list"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Where Leads Come From</h2>
+      <p class="card-sub">Tag every lead with a source and this tells you which outreach is worth repeating.</p>
+      <div class="table-scroll">
+        <table class="mini" id="source-table">
+          <thead><tr><th>Source</th><th class="num">Leads</th><th class="num">Interested</th><th class="num">Booked</th><th class="num">Hit Rate</th></tr></thead>
+          <tbody id="source-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== PHOTOS ============== -->
+  <section class="tab-panel" id="tab-photos" hidden>
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Before &amp; After Gallery</h2><p class="card-sub">Every photo you've uploaded, newest first — your marketing library.</p></div>
+      </div>
+      <div class="gallery-filters">
+        <label for="gal-service" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Service</label>
+        <select id="gal-service" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface-2);color:var(--ink);">
+          <option value="">All services</option>
+          <option>Driveway</option><option>House Wash</option><option>Deck / Patio</option>
+          <option>Roof</option><option>Fence</option><option>Other</option>
+        </select>
+      </div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+      <p class="empty-note" id="gallery-empty" hidden>No photos yet — add a before/after photo when you save a job and it'll show up here.</p>
     </div>
   </section>
 
@@ -557,30 +905,125 @@
   var editingJobId = null;
   var editingLeadId = null;
   var editingWorkerId = null;
+  var editingCustomerId = null;
+  var editingExpenseId = null;
+  var editingComplianceId = null;
   var pendingLogoFile = null;
   var currentProfile = null;
-  var currentWorkers = DEMO_WORKERS;
+  var expandedCustomerId = null;
+  var pnlPeriod = 'year';
+  var galleryService = '';
   var calCursor = new Date(); calCursor.setDate(1); // first-of-month cursor for the calendar view
 
-  var STATUS_LABEL = { quoted:"Quoted", scheduled:"Scheduled", completed:"Completed", paid:"Paid" };
+  var STATUS_LABEL = { quoted:"Quoted", scheduled:"Scheduled", completed:"Completed", paid:"Paid", declined:"Declined" };
   var LEAD_LABEL = { not_contacted:"Not Contacted", contacted:"Contacted", interested:"Interested", scheduled:"Scheduled", not_interested:"Not Interested" };
+  var DEFAULT_SERVICE_INTERVAL = 12; // months, until you set your own in Business Info
+
+  // ---- Date helpers ----
+  function todayYmd(){ return ymd(new Date()); }
+  function parseYmd(s){ return s ? new Date(s + 'T00:00:00') : null; }
+  function dayOffset(n){ var d = new Date(); d.setDate(d.getDate() + n); return ymd(d); }
+  function monthOffset(n){ var d = new Date(); d.setMonth(d.getMonth() + n); return ymd(d); }
+  function daysSince(dateStr){
+    var d = parseYmd(dateStr); if (!d) return null;
+    var t = new Date(); t.setHours(0,0,0,0);
+    return Math.round((t - d) / 86400000);
+  }
+  function addMonths(dateStr, months){
+    var d = parseYmd(dateStr); if (!d || !months) return null;
+    d.setMonth(d.getMonth() + Number(months));
+    return ymd(d);
+  }
+  // Like fmtDate, but adds the year when the date isn't in the current year —
+  // otherwise a "next due" date a year out reads the same as the last service.
+  function fmtDateSmart(s){
+    if (!s) return '—';
+    var d = parseYmd(s);
+    var opts = {month:'short', day:'numeric'};
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return d.toLocaleDateString('en-US', opts);
+  }
+  function fmtTime(hhmm){
+    if (!hhmm) return '';
+    var parts = String(hhmm).split(':');
+    var h = parseInt(parts[0], 10); var m = parts[1] || '00';
+    if (isNaN(h)) return '';
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ':' + m + ' ' + ampm;
+  }
 
   // ---- Demo fallback data (used until Supabase is connected) ----
-  var DEMO_WORKERS = [ {id:'w1', name:'Marcus', phone:'(770) 555-0110'}, {id:'w2', name:'Dee', phone:''} ];
+  var DEMO_WORKERS = [
+    {id:'w1', name:'Marcus', phone:'(770) 555-0110', pay_type:'hourly', pay_rate:22},
+    {id:'w2', name:'Dee', phone:'', pay_type:'flat', pay_rate:75}
+  ];
+  var DEMO_CUSTOMERS = [
+    {id:'c1', name:"Marta Ellison", phone:"(770) 555-0188", email:"marta.e@example.com", address:"114 Stonewood Creek Dr", notes:"Gate code 4412", service_interval_months:12},
+    {id:'c2', name:"Dave Nguyen", phone:"(678) 555-0143", email:"", address:"208 Millbrook Ct", notes:"", service_interval_months:null},
+    {id:'c3', name:"Priya Achar", phone:"(770) 555-0122", email:"priya@example.com", address:"77 Stonewood Creek Dr", notes:"Two dogs — keep gate shut", service_interval_months:null},
+    {id:'c4', name:"Tom Riggins", phone:"", email:"", address:"3 Hollow Bend Way", notes:"", service_interval_months:null},
+    {id:'c5', name:"Alicia Ford", phone:"(770) 555-0167", email:"", address:"41 Stonewood Creek Dr", notes:"", service_interval_months:6}
+  ];
+  // Tiny inline placeholders so the gallery has something to show in demo mode.
+  var DEMO_BEFORE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='160'%3E%3Crect width='240' height='160' fill='%238d8877'/%3E%3Ctext x='120' y='88' font-family='sans-serif' font-size='19' fill='%23ffffff' text-anchor='middle'%3EBEFORE%3C/text%3E%3C/svg%3E";
+  var DEMO_AFTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='160'%3E%3Crect width='240' height='160' fill='%234a9bdb'/%3E%3Ctext x='120' y='88' font-family='sans-serif' font-size='19' fill='%23ffffff' text-anchor='middle'%3EAFTER%3C/text%3E%3C/svg%3E";
+
   var DEMO_JOBS = [
-    {id:'d1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"Driveway", price:225, job_date:"2026-09-02", status:"paid", tax_rate:0, assigned_worker_id:'w1', photos:[], line_items:[{description:"Driveway wash", quantity:1, unit_price:225}]},
-    {id:'d2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"House Wash", price:438.70, job_date:"2026-09-05", status:"completed", tax_rate:7, assigned_worker_id:'w2', photos:[], line_items:[{description:"House wash", quantity:1, unit_price:350},{description:"Gutter brightening", quantity:1, unit_price:60}]},
-    {id:'d3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"Deck / Patio", price:180, job_date:"2026-09-08", status:"scheduled", tax_rate:0, assigned_worker_id:'w1', photos:[], line_items:[{description:"Deck & patio wash", quantity:1, unit_price:180}]},
-    {id:'d4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"Roof", price:650, job_date:"2026-09-10", status:"quoted", tax_rate:0, assigned_worker_id:null, photos:[], line_items:[{description:"Roof soft wash", quantity:1, unit_price:650}]},
-    {id:'d5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"Driveway", price:240, job_date:"2026-09-16", status:"scheduled", tax_rate:0, assigned_worker_id:'w2', photos:[], line_items:[{description:"Driveway & walkway wash", quantity:1, unit_price:240}]}
+    {id:'d0', customer_id:'c1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"House Wash", price:395, job_date:dayOffset(-425), status:"paid", tax_rate:0, assigned_worker_id:'w1', labor_hours:4, paid_date:dayOffset(-423), payment_method:"Check", review_requested_at:dayOffset(-422), review_received:true, photos:[], line_items:[{description:"House wash", quantity:1, unit_price:395}]},
+    {id:'d7', customer_id:'c3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"House Wash", price:420, job_date:dayOffset(-152), status:"paid", tax_rate:0, assigned_worker_id:'w1', labor_hours:4.5, paid_date:dayOffset(-150), payment_method:"Zelle", review_requested_at:dayOffset(-149), review_received:true, photos:[{kind:'before', photo_url:DEMO_BEFORE},{kind:'after', photo_url:DEMO_AFTER}], line_items:[{description:"House wash", quantity:1, unit_price:420}]},
+    {id:'d8', customer_id:'c2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"Driveway", price:265, job_date:dayOffset(-96), status:"paid", tax_rate:0, assigned_worker_id:'w2', labor_hours:2.5, paid_date:dayOffset(-96), payment_method:"Cash", review_requested_at:dayOffset(-95), review_received:false, photos:[{kind:'before', photo_url:DEMO_BEFORE},{kind:'after', photo_url:DEMO_AFTER}], line_items:[{description:"Driveway & walkway", quantity:1, unit_price:265}]},
+    {id:'d9', customer_id:'c5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"Deck / Patio", price:295, job_date:dayOffset(-61), status:"paid", tax_rate:0, assigned_worker_id:'w1', labor_hours:3, paid_date:dayOffset(-58), payment_method:"Venmo", review_requested_at:null, review_received:false, photos:[], line_items:[{description:"Deck restoration wash", quantity:1, unit_price:295}]},
+    {id:'d10', customer_id:'c4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"Roof", price:720, job_date:dayOffset(-120), status:"declined", tax_rate:0, assigned_worker_id:null, photos:[], line_items:[{description:"Roof soft wash", quantity:1, unit_price:720}]},
+    {id:'d11', customer_id:'c2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"Fence", price:340, job_date:dayOffset(-180), status:"paid", tax_rate:0, assigned_worker_id:'w2', labor_hours:3, paid_date:dayOffset(-178), payment_method:"Zelle", review_requested_at:dayOffset(-177), review_received:true, photos:[], line_items:[{description:"Fence wash & brighten", quantity:1, unit_price:340}]},
+    {id:'d12', customer_id:'c1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"Deck / Patio", price:260, job_date:dayOffset(-75), status:"paid", tax_rate:0, assigned_worker_id:'w1', labor_hours:2.5, paid_date:dayOffset(-74), payment_method:"Check", review_requested_at:dayOffset(-73), review_received:true, photos:[{kind:'before', photo_url:DEMO_BEFORE},{kind:'after', photo_url:DEMO_AFTER}], line_items:[{description:"Deck & patio wash", quantity:1, unit_price:260}]},
+    {id:'d13', customer_id:'c3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"Driveway", price:235, job_date:dayOffset(-28), status:"paid", tax_rate:0, assigned_worker_id:'w2', labor_hours:2, paid_date:dayOffset(-26), payment_method:"Cash App", review_requested_at:null, review_received:false, photos:[], line_items:[{description:"Driveway wash", quantity:1, unit_price:235}]},
+    {id:'d14', customer_id:'c5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"House Wash", price:465, job_date:dayOffset(-19), status:"paid", tax_rate:0, assigned_worker_id:'w1', labor_hours:4.5, paid_date:dayOffset(-17), payment_method:"Zelle", review_requested_at:null, review_received:false, photos:[{kind:'before', photo_url:DEMO_BEFORE},{kind:'after', photo_url:DEMO_AFTER}], line_items:[{description:"House wash", quantity:1, unit_price:400},{description:"Gutter brightening", quantity:1, unit_price:65}]},
+    {id:'d1', customer_id:'c1', client_name:"Marta Ellison", address:"114 Stonewood Creek Dr", service_type:"Driveway", price:225, job_date:dayOffset(-11), status:"paid", tax_rate:0, assigned_worker_id:'w1', labor_hours:2.5, paid_date:dayOffset(-9), payment_method:"Zelle", review_requested_at:null, review_received:false, photos:[], line_items:[{description:"Driveway wash", quantity:1, unit_price:225}]},
+    {id:'d2', customer_id:'c2', client_name:"Dave Nguyen", address:"208 Millbrook Ct", service_type:"House Wash", price:438.70, job_date:dayOffset(-44), status:"completed", tax_rate:7, assigned_worker_id:'w2', labor_hours:5, photos:[], line_items:[{description:"House wash", quantity:1, unit_price:350},{description:"Gutter brightening", quantity:1, unit_price:60}]},
+    {id:'d3', customer_id:'c3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"Deck / Patio", price:180, job_date:todayYmd(), status:"scheduled", tax_rate:0, assigned_worker_id:'w1', start_time:"09:00", duration_minutes:120, labor_hours:2, photos:[], line_items:[{description:"Deck & patio wash", quantity:1, unit_price:180}]},
+    {id:'d6', customer_id:'c5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"Driveway", price:240, job_date:todayYmd(), status:"scheduled", tax_rate:0, assigned_worker_id:'w2', start_time:"13:30", duration_minutes:90, labor_hours:1.5, photos:[], line_items:[{description:"Driveway & walkway wash", quantity:1, unit_price:240}]},
+    {id:'d4', customer_id:'c4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"Roof", price:650, job_date:dayOffset(-3), status:"quoted", tax_rate:0, assigned_worker_id:null, photos:[], line_items:[{description:"Roof soft wash", quantity:1, unit_price:650}]},
+    {id:'d5', customer_id:'c5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"Fence", price:310, job_date:dayOffset(+4), status:"scheduled", tax_rate:0, assigned_worker_id:'w2', start_time:"10:00", duration_minutes:150, labor_hours:2.5, photos:[], line_items:[{description:"Fence wash", quantity:1, unit_price:310}]}
+  ];
+  var DEMO_EXPENSES = [
+    {id:'e1', job_id:'d1', expense_date:dayOffset(-11), category:"Chemicals", vendor:"Southeast Softwash", amount:34.50, notes:"SH + surfactant"},
+    {id:'e2', job_id:'d1', expense_date:dayOffset(-11), category:"Fuel", vendor:"Shell", amount:18.20, notes:""},
+    {id:'e3', job_id:'d2', expense_date:dayOffset(-44), category:"Chemicals", vendor:"Southeast Softwash", amount:52.00, notes:""},
+    {id:'e4', job_id:null, expense_date:dayOffset(-30), category:"Insurance", vendor:"Next Insurance", amount:142.00, notes:"Monthly GL premium"},
+    {id:'e5', job_id:null, expense_date:dayOffset(-60), category:"Equipment", vendor:"Pressure Tek", amount:418.00, notes:"Surface cleaner"},
+    {id:'e6', job_id:null, expense_date:dayOffset(-14), category:"Marketing", vendor:"VistaPrint", amount:96.00, notes:"500 door hangers"},
+    {id:'e7', job_id:'d7', expense_date:dayOffset(-152), category:"Chemicals", vendor:"Southeast Softwash", amount:46.80, notes:""},
+    {id:'e8', job_id:'d8', expense_date:dayOffset(-96), category:"Chemicals", vendor:"Southeast Softwash", amount:28.40, notes:""},
+    {id:'e9', job_id:'d8', expense_date:dayOffset(-96), category:"Fuel", vendor:"QuikTrip", amount:16.75, notes:""},
+    {id:'e10', job_id:'d9', expense_date:dayOffset(-61), category:"Chemicals", vendor:"Southeast Softwash", amount:38.90, notes:"Deck brightener"},
+    {id:'e11', job_id:null, expense_date:dayOffset(-90), category:"Insurance", vendor:"Next Insurance", amount:142.00, notes:"Monthly GL premium"},
+    {id:'e12', job_id:null, expense_date:dayOffset(-60), category:"Insurance", vendor:"Next Insurance", amount:142.00, notes:"Monthly GL premium"},
+    {id:'e13', job_id:null, expense_date:dayOffset(-120), category:"Licenses & Permits", vendor:"Paulding County", amount:75.00, notes:"Business license"}
+  ];
+  var DEMO_MILEAGE = [
+    {id:'m1', job_id:'d1', log_date:dayOffset(-11), miles:14.2, purpose:"Drive to job"},
+    {id:'m2', job_id:null, log_date:dayOffset(-14), miles:22.0, purpose:"Supply run"}
+  ];
+  var DEMO_COMPLIANCE = [
+    {id:'k1', name:"General liability insurance", due_date:dayOffset(+21), interval_months:12, notes:"Certificate expiration"},
+    {id:'k2', name:"Georgia LLC annual registration", due_date:monthOffset(+5), interval_months:12, notes:"Filed with GA Secretary of State"},
+    {id:'k3', name:"Business license", due_date:monthOffset(+8), interval_months:12, notes:"County renewal"}
   ];
   var DEMO_LEADS = [
-    {id:'l1', address:"22 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"interested", notes:"Asked for a quote next week"},
-    {id:'l2', address:"140 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"contacted", notes:""},
-    {id:'l3', address:"9 Millbrook Ct", subdivision:"Millbrook", status:"not_contacted", notes:""}
+    {id:'l1', address:"22 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"interested", source:"Door hanger", notes:"Asked for a quote next week"},
+    {id:'l2', address:"140 Stonewood Creek Dr", subdivision:"Stonewood Creek", status:"contacted", source:"Door hanger", notes:""},
+    {id:'l3', address:"9 Millbrook Ct", subdivision:"Millbrook", status:"not_contacted", source:"Referral", notes:""},
+    {id:'l4', address:"58 Hollow Bend Way", subdivision:"Hollow Bend", status:"scheduled", source:"Referral", notes:"Neighbor of Tom Riggins"}
   ];
   var DEMO_CHART = [450, 610, 225, 780, 540, 920, 700, 1150]; // revenue, last 8 weeks
-  var DEMO_PROFILE = { business_name:"CK Pressure Washing", phone:"(770) 555-0134", email:"hello@ckpressurewashing.com", address:"Dallas, GA", logo_path:null, default_tax_rate:0 };
+  var DEMO_PROFILE = { business_name:"CK Pressure Washing", phone:"(770) 555-0134", email:"hello@ckpressurewashing.com", address:"Dallas, GA", logo_path:null, default_tax_rate:0, review_link:"", mileage_rate:0, default_service_interval_months:12 };
+
+  var currentWorkers = DEMO_WORKERS;
+  var currentCustomers = DEMO_CUSTOMERS;
+  var currentExpenses = DEMO_EXPENSES;
+  var currentMileage = DEMO_MILEAGE;
+  var currentCompliance = DEMO_COMPLIANCE;
 
   function fmtMoney(n){ return "$" + Number(n||0).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}); }
   function fmtDate(s){
@@ -613,37 +1056,55 @@
     var today = new Date();
     var wkStart = startOfWeek(today);
     var jobsThisWeek = jobs.filter(function(j){ return new Date(j.job_date+'T00:00:00') >= wkStart; }).length;
-    var revenuePaid = jobs.filter(function(j){ return j.status==='paid'; }).reduce(function(s,j){ return s + Number(j.price); }, 0);
-    var outstanding = jobs.filter(function(j){ return j.status==='completed'; }).reduce(function(s,j){ return s + Number(j.price); }, 0);
+    // Year to date, so this lines up with the Money tab instead of being an
+    // ever-growing all-time number that stops meaning anything.
+    var revenuePaid = jobs.reduce(function(s,j){
+      return inPeriod(j.paid_date || j.job_date, 'year') ? s + amountReceived(j) : s;
+    }, 0);
+    var outstanding = jobs.reduce(function(s,j){ return s + jobBalanceDue(j); }, 0);
     var activeLeads = leads.filter(function(l){ return l.status !== 'not_interested'; }).length;
-    return { jobsThisWeek: jobsThisWeek, revenuePaid: revenuePaid, outstanding: outstanding, activeLeads: activeLeads };
+    var oldest = outstandingJobs()[0];
+    var oldestDays = oldest ? (daysSince(oldest.job_date) || 0) : 0;
+    return { jobsThisWeek: jobsThisWeek, revenuePaid: revenuePaid, outstanding: outstanding,
+      activeLeads: activeLeads, oldestDays: oldestDays };
   }
 
   function computeFinancials(jobs){
-    var revenuePaid = jobs.filter(function(j){ return j.status==='paid'; }).reduce(function(s,j){ return s+Number(j.price); }, 0);
-    var outstanding = jobs.filter(function(j){ return j.status==='completed'; }).reduce(function(s,j){ return s+Number(j.price); }, 0);
-    var totalJobs = jobs.length;
-    var totalValue = jobs.reduce(function(s,j){ return s+Number(j.price); }, 0);
-    var avg = totalJobs ? (totalValue / totalJobs) : 0;
-    return { revenuePaid: revenuePaid, outstanding: outstanding, totalJobs: totalJobs, avg: avg };
+    var p = computePnL(pnlPeriod);
+    var billable = jobs.filter(function(j){ return j.status === 'completed' || j.status === 'paid'; });
+    var totalValue = billable.reduce(function(s,j){ return s + invoiceTotal(j); }, 0);
+    var avg = billable.length ? (totalValue / billable.length) : 0;
+    return { revenue: p.revenue, expenses: p.jobCosts + p.overhead + p.labor, net: p.net,
+      margin: p.margin, totalJobs: billable.length, avg: avg };
+  }
+
+  // Won vs lost on the quotes you've given.
+  function computeWinRate(jobs){
+    var won = jobs.filter(function(j){ return j.status==='scheduled' || j.status==='completed' || j.status==='paid'; }).length;
+    var lost = jobs.filter(function(j){ return j.status==='declined'; }).length;
+    var pending = jobs.filter(function(j){ return j.status==='quoted'; }).length;
+    var decided = won + lost;
+    return { won: won, lost: lost, pending: pending, rate: decided ? (won/decided)*100 : null };
   }
 
   function renderKPIs(k){
     var el = document.getElementById('kpis');
     el.innerHTML =
       '<div class="kpi"><p class="label">Jobs This Week</p><p class="value">'+k.jobsThisWeek+'</p></div>' +
-      '<div class="kpi"><p class="label">Revenue (Paid)</p><p class="value">'+fmtMoney(k.revenuePaid)+'</p></div>' +
-      '<div class="kpi"><p class="label">Outstanding</p><p class="value'+(k.outstanding>0?' warn':'')+'">'+fmtMoney(k.outstanding)+'</p><p class="sub">'+(k.outstanding>0?'Completed, not yet paid':'All caught up')+'</p></div>' +
+      '<div class="kpi"><p class="label">Revenue This Year</p><p class="value">'+fmtMoney(k.revenuePaid)+'</p><p class="sub">Collected, not just billed</p></div>' +
+      '<div class="kpi"><p class="label">Outstanding</p><p class="value'+(k.outstanding>0?' warn':'')+'">'+fmtMoney(k.outstanding)+'</p><p class="sub">'+(k.outstanding>0?'Oldest is '+k.oldestDays+' days out':'All caught up')+'</p></div>' +
       '<div class="kpi"><p class="label">Active Leads</p><p class="value">'+k.activeLeads+'</p><p class="sub">Stonewood Creek &amp; nearby</p></div>';
   }
 
+  var PERIOD_LABEL = { month:'this month', quarter:'this quarter', year:'this year', all:'all time' };
   function renderFinancialsKPIs(f){
     var el = document.getElementById('fin-kpis');
+    var when = PERIOD_LABEL[pnlPeriod] || '';
     el.innerHTML =
-      '<div class="kpi"><p class="label">Revenue (Paid)</p><p class="value">'+fmtMoney(f.revenuePaid)+'</p></div>' +
-      '<div class="kpi"><p class="label">Outstanding</p><p class="value'+(f.outstanding>0?' warn':'')+'">'+fmtMoney(f.outstanding)+'</p></div>' +
-      '<div class="kpi"><p class="label">Total Jobs</p><p class="value">'+f.totalJobs+'</p></div>' +
-      '<div class="kpi"><p class="label">Avg Job Value</p><p class="value">'+fmtMoney(f.avg)+'</p></div>';
+      '<div class="kpi"><p class="label">Revenue</p><p class="value">'+fmtMoney(f.revenue)+'</p><p class="sub">Collected '+when+'</p></div>' +
+      '<div class="kpi"><p class="label">Expenses</p><p class="value">'+fmtMoney(f.expenses)+'</p><p class="sub">Costs, labor &amp; overhead</p></div>' +
+      '<div class="kpi"><p class="label">Net Profit</p><p class="value'+(f.net < 0 ? ' warn' : '')+'">'+fmtMoney(f.net)+'</p><p class="sub">'+(f.revenue ? f.margin.toFixed(0)+'% margin' : 'No revenue yet')+'</p></div>' +
+      '<div class="kpi"><p class="label">Avg Job Value</p><p class="value">'+fmtMoney(f.avg)+'</p><p class="sub">'+f.totalJobs+' jobs done</p></div>';
   }
 
   function renderChart(buckets){
@@ -704,9 +1165,11 @@
     return [{description: job.service_type, quantity:1, unit_price:Number(job.price)}];
   }
   function computeInvoiceTotals(job){
+    var hasLines = !!(job.line_items && job.line_items.length);
     var items = getInvoiceItems(job);
     var subtotal = items.reduce(function(s,li){ return s + Number(li.quantity)*Number(li.unit_price); }, 0);
-    var taxRate = Number(job.tax_rate || 0);
+    // Without line items the stored price is already tax-inclusive, so don't add tax a second time.
+    var taxRate = hasLines ? Number(job.tax_rate || 0) : 0;
     var taxAmt = subtotal * (taxRate / 100);
     return { items: items, subtotal: subtotal, taxRate: taxRate, taxAmt: taxAmt, total: subtotal + taxAmt };
   }
@@ -738,6 +1201,600 @@
     return lines.join('\n');
   }
 
+  // ================= Customers, money, and everything built on top of them =================
+  function fmtMoney2(n){ return "$" + Number(n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function getCustomer(id){
+    if (!id) return null;
+    return (currentCustomers||[]).find(function(c){ return String(c.id) === String(id); }) || null;
+  }
+  // Jobs saved before customers existed only have a client name — fall back to matching on that.
+  function customerForJob(job){
+    if (job.customer_id){ var byId = getCustomer(job.customer_id); if (byId) return byId; }
+    return (currentCustomers||[]).find(function(c){ return c.name === job.client_name; }) || null;
+  }
+  function jobsForCustomer(customer){
+    return (currentJobs||[]).filter(function(j){
+      return String(j.customer_id) === String(customer.id) || (!j.customer_id && j.client_name === customer.name);
+    });
+  }
+
+  // ---- Money per job ----
+  function jobLaborCost(job){
+    var w = getWorker(job.assigned_worker_id);
+    if (!w || !w.pay_rate) return 0;
+    if (w.pay_type === 'flat') return Number(w.pay_rate);
+    return Number(w.pay_rate) * Number(job.labor_hours || 0);
+  }
+  function jobExpenses(jobId){
+    return (currentExpenses||[]).filter(function(x){ return String(x.job_id) === String(jobId); });
+  }
+  function jobExpenseTotal(jobId){
+    return jobExpenses(jobId).reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
+  }
+  // Cash actually collected on this job.
+  function amountReceived(job){
+    var total = invoiceTotal(job);
+    if (job.status === 'paid') return job.amount_paid != null && job.amount_paid !== '' ? Number(job.amount_paid) : total;
+    if (job.status === 'completed') return Number(job.amount_paid || 0);
+    return 0;
+  }
+  // Cash still owed on this job.
+  function jobBalanceDue(job){
+    if (job.status !== 'paid' && job.status !== 'completed') return 0;
+    var bal = invoiceTotal(job) - amountReceived(job);
+    return bal > 0.005 ? bal : 0;
+  }
+  function jobProfit(job){
+    return amountReceived(job) - jobExpenseTotal(job.id) - jobLaborCost(job);
+  }
+
+  // ---- Recurring service ----
+  function serviceIntervalFor(customer){
+    if (customer && customer.service_interval_months) return Number(customer.service_interval_months);
+    var p = currentProfile || DEMO_PROFILE;
+    return Number((p && p.default_service_interval_months) || DEFAULT_SERVICE_INTERVAL);
+  }
+  function customerStats(customer){
+    var jobs = jobsForCustomer(customer);
+    var done = jobs.filter(function(j){ return j.status === 'completed' || j.status === 'paid'; });
+    var lifetime = done.reduce(function(s,j){ return s + amountReceived(j); }, 0);
+    var lastService = done.reduce(function(latest, j){
+      return (!latest || j.job_date > latest) ? j.job_date : latest;
+    }, null);
+    var interval = serviceIntervalFor(customer);
+    var nextDue = lastService ? addMonths(lastService, interval) : null;
+    var dueDays = nextDue ? daysSince(nextDue) : null; // positive = overdue
+    return {
+      jobs: jobs, jobCount: jobs.length, doneCount: done.length, lifetime: lifetime,
+      lastService: lastService, nextDue: nextDue, dueDays: dueDays,
+      isDue: dueDays != null && dueDays >= 0,
+      isSoon: dueDays != null && dueDays < 0 && dueDays > -30
+    };
+  }
+  function customersDueForService(){
+    return (currentCustomers||[]).map(function(c){
+      return { customer: c, stats: customerStats(c) };
+    }).filter(function(r){ return r.stats.isDue; })
+      .sort(function(a,b){ return b.stats.dueDays - a.stats.dueDays; });
+  }
+
+  // ---- Period filtering for the P&L ----
+  function periodStart(period){
+    var d = new Date(); d.setHours(0,0,0,0);
+    if (period === 'month') return new Date(d.getFullYear(), d.getMonth(), 1);
+    if (period === 'quarter') return new Date(d.getFullYear(), Math.floor(d.getMonth()/3)*3, 1);
+    if (period === 'year') return new Date(d.getFullYear(), 0, 1);
+    return null; // all time
+  }
+  function inPeriod(dateStr, period){
+    if (!dateStr) return false;
+    var start = periodStart(period);
+    if (!start) return true;
+    return parseYmd(dateStr) >= start;
+  }
+
+  function computePnL(period){
+    var revenue = 0, jobCosts = 0, overhead = 0, labor = 0, miles = 0;
+    (currentJobs||[]).forEach(function(j){
+      var basis = j.paid_date || j.job_date;
+      if (amountReceived(j) > 0 && inPeriod(basis, period)) revenue += amountReceived(j);
+      if ((j.status === 'completed' || j.status === 'paid') && inPeriod(j.job_date, period)) labor += jobLaborCost(j);
+    });
+    (currentExpenses||[]).forEach(function(x){
+      if (!inPeriod(x.expense_date, period)) return;
+      if (x.job_id) jobCosts += Number(x.amount||0); else overhead += Number(x.amount||0);
+    });
+    (currentMileage||[]).forEach(function(m){
+      if (inPeriod(m.log_date, period)) miles += Number(m.miles||0);
+    });
+    var p = currentProfile || DEMO_PROFILE;
+    var rate = Number((p && p.mileage_rate) || 0);
+    var net = revenue - jobCosts - overhead - labor;
+    return {
+      revenue: revenue, jobCosts: jobCosts, overhead: overhead, labor: labor,
+      net: net, margin: revenue ? (net / revenue) * 100 : 0,
+      miles: miles, mileageRate: rate, mileageDeduction: miles * rate,
+      afterMileage: net - (miles * rate)
+    };
+  }
+
+  function renderPnL(){
+    var p = computePnL(pnlPeriod);
+    var rows = [
+      ['Revenue collected', p.revenue, 'pos'],
+      ['Job costs (chemicals, fuel, materials)', -p.jobCosts, 'neg'],
+      ['Labor', -p.labor, 'neg'],
+      ['Overhead (insurance, equipment, marketing…)', -p.overhead, 'neg']
+    ];
+    var html = rows.map(function(r){
+      return '<tr><td>'+esc(r[0])+'</td><td class="num '+(r[1] < 0 ? 'neg' : '')+'">'+
+        (r[1] < 0 ? '-' + fmtMoney2(Math.abs(r[1])) : fmtMoney2(r[1]))+'</td></tr>';
+    }).join('');
+    html += '<tr class="total-row"><td>Net profit</td><td class="num '+(p.net >= 0 ? 'pos' : 'neg')+'">'+
+      (p.net < 0 ? '-' + fmtMoney2(Math.abs(p.net)) : fmtMoney2(p.net))+'</td></tr>';
+    html += '<tr><td class="sub">Margin</td><td class="num sub">'+(p.revenue ? p.margin.toFixed(1) + '%' : '—')+'</td></tr>';
+    if (p.miles > 0){
+      html += '<tr><td class="sub">Mileage deduction ('+p.miles.toFixed(1)+' mi'+(p.mileageRate ? ' @ $'+p.mileageRate.toFixed(3) : ', set a rate in Business Info')+')</td>' +
+        '<td class="num sub">'+(p.mileageRate ? '-' + fmtMoney2(p.mileageDeduction) : '—')+'</td></tr>';
+      if (p.mileageRate){
+        html += '<tr><td class="sub">Profit after mileage deduction</td><td class="num sub">'+
+          (p.afterMileage < 0 ? '-' + fmtMoney2(Math.abs(p.afterMileage)) : fmtMoney2(p.afterMileage))+'</td></tr>';
+      }
+    }
+    document.getElementById('pnl-body').innerHTML = html;
+  }
+
+  function renderServiceProfit(){
+    var byService = {};
+    (currentJobs||[]).forEach(function(j){
+      if (j.status !== 'completed' && j.status !== 'paid') return;
+      var key = j.service_type || 'Other';
+      var s = byService[key] || (byService[key] = {jobs:0, revenue:0, costs:0, labor:0});
+      s.jobs += 1;
+      s.revenue += amountReceived(j);
+      s.costs += jobExpenseTotal(j.id);
+      s.labor += jobLaborCost(j);
+    });
+    var keys = Object.keys(byService).sort(function(a,b){
+      return (byService[b].revenue - byService[b].costs - byService[b].labor) - (byService[a].revenue - byService[a].costs - byService[a].labor);
+    });
+    var el = document.getElementById('service-body');
+    if (!keys.length){
+      el.innerHTML = '<tr><td colspan="7" class="empty-note">No completed jobs yet.</td></tr>';
+      return;
+    }
+    el.innerHTML = keys.map(function(k){
+      var s = byService[k];
+      var profit = s.revenue - s.costs - s.labor;
+      var margin = s.revenue ? (profit / s.revenue) * 100 : 0;
+      return '<tr><td><b>'+esc(k)+'</b></td>' +
+        '<td class="num">'+s.jobs+'</td>' +
+        '<td class="num">'+fmtMoney(s.revenue)+'</td>' +
+        '<td class="num">'+fmtMoney(s.costs)+'</td>' +
+        '<td class="num">'+fmtMoney(s.labor)+'</td>' +
+        '<td class="num '+(profit >= 0 ? 'pos' : 'neg')+'">'+fmtMoney(profit)+'</td>' +
+        '<td class="num">'+(s.revenue ? margin.toFixed(0)+'%' : '—')+'</td></tr>';
+    }).join('');
+  }
+
+  function outstandingJobs(){
+    return (currentJobs||[]).filter(function(j){ return jobBalanceDue(j) > 0; })
+      .sort(function(a,b){ return (daysSince(b.job_date)||0) - (daysSince(a.job_date)||0); });
+  }
+  function renderAging(){
+    var rows = outstandingJobs();
+    var el = document.getElementById('aging-body');
+    if (!rows.length){
+      el.innerHTML = '<tr><td colspan="5" class="empty-note">Nothing outstanding — everything completed has been paid.</td></tr>';
+      return;
+    }
+    el.innerHTML = rows.map(function(j){
+      var days = daysSince(j.job_date) || 0;
+      var cls = days >= 60 ? 'neg' : (days >= 30 ? '' : 'sub');
+      return '<tr><td><b>'+esc(j.client_name)+'</b><div class="addr-sub">'+esc(j.address)+'</div></td>' +
+        '<td class="dt">'+fmtDate(j.job_date)+'</td>' +
+        '<td class="num '+cls+'">'+days+'</td>' +
+        '<td class="num">'+fmtMoney2(jobBalanceDue(j))+'</td>' +
+        '<td><button class="icon-btn" type="button" data-action="view-invoice" data-id="'+j.id+'">Invoice</button></td></tr>';
+    }).join('');
+  }
+
+  // ---- Customers tab ----
+  function renderCustomerKPIs(){
+    var all = currentCustomers || [];
+    var due = customersDueForService().length;
+    var repeat = all.filter(function(c){ return customerStats(c).doneCount > 1; }).length;
+    var lifetime = all.reduce(function(s,c){ return s + customerStats(c).lifetime; }, 0);
+    var avg = all.length ? lifetime / all.length : 0;
+    document.getElementById('cust-kpis').innerHTML =
+      '<div class="kpi"><p class="label">Customers</p><p class="value">'+all.length+'</p></div>' +
+      '<div class="kpi"><p class="label">Repeat Customers</p><p class="value">'+repeat+'</p><p class="sub">'+(all.length ? Math.round(repeat/all.length*100)+'% of your list' : '—')+'</p></div>' +
+      '<div class="kpi"><p class="label">Due for Service</p><p class="value'+(due>0?' warn':'')+'">'+due+'</p><p class="sub">'+(due>0?'Worth a call this week':'Nobody overdue')+'</p></div>' +
+      '<div class="kpi"><p class="label">Avg Lifetime Value</p><p class="value">'+fmtMoney(avg)+'</p></div>';
+  }
+
+  function renderCustomers(){
+    var el = document.getElementById('cust-body');
+    var list = (currentCustomers||[]).slice().sort(function(a,b){
+      return customerStats(b).lifetime - customerStats(a).lifetime;
+    });
+    if (!list.length){
+      el.innerHTML = '<tr><td colspan="6" class="empty-note">No customers yet. They\'re created automatically when you save a job, or add one above.</td></tr>';
+      return;
+    }
+    el.innerHTML = list.map(function(c){
+      var s = customerStats(c);
+      var contact = [c.phone, c.email].filter(Boolean).join(' · ');
+      var duePill;
+      if (!s.lastService) duePill = '<span class="due-pill none">No service yet</span>';
+      else if (s.isDue) duePill = '<span class="due-pill">Due now'+(s.dueDays > 30 ? ' ('+Math.round(s.dueDays/30)+' mo over)' : '')+'</span>';
+      else if (s.isSoon) duePill = '<span class="due-pill">Due '+fmtDateSmart(s.nextDue)+'</span>';
+      else duePill = '<span class="due-pill ok">'+fmtDateSmart(s.nextDue)+'</span>';
+
+      var actions = '<div class="actions-cell">' +
+        '<button class="icon-btn" type="button" data-action="cust-history" data-id="'+c.id+'">'+(String(expandedCustomerId)===String(c.id)?'Hide':'History')+'</button>' +
+        (isLive ? '<button class="icon-btn" type="button" data-action="cust-edit" data-id="'+c.id+'">Edit</button>' +
+                  '<button class="icon-btn danger" type="button" data-action="cust-delete" data-id="'+c.id+'">Delete</button>' : '') +
+        '</div>';
+
+      var row = '<tr><td><div class="cust-name">'+esc(c.name)+'</div>' +
+        (c.address ? '<div class="cust-contact">'+esc(c.address)+'</div>' : '') +
+        (contact ? '<div class="cust-contact">'+esc(contact)+'</div>' : '') + '</td>' +
+        '<td class="num">'+s.doneCount+'</td>' +
+        '<td class="num">'+fmtMoney(s.lifetime)+'</td>' +
+        '<td class="dt">'+(s.lastService ? fmtDateSmart(s.lastService) : '—')+'</td>' +
+        '<td>'+duePill+'</td>' +
+        '<td>'+actions+'</td></tr>';
+
+      if (String(expandedCustomerId) === String(c.id)){
+        var hist = s.jobs.slice().sort(function(a,b){ return b.job_date.localeCompare(a.job_date); });
+        var histRows = hist.length ? hist.map(function(j){
+          return '<tr><td class="dt">'+fmtDateSmart(j.job_date)+'</td><td>'+esc(j.service_type)+'</td>' +
+            '<td class="num">'+fmtMoney(invoiceTotal(j))+'</td>' +
+            '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
+            '<td><button class="icon-btn" type="button" data-action="cust-open-job" data-id="'+j.id+'">Open</button></td></tr>';
+        }).join('') : '<tr><td colspan="5" class="empty-note">No jobs recorded yet.</td></tr>';
+        row += '<tr><td colspan="6"><div class="cust-history">' +
+          '<h4>Job history' + (c.notes ? ' — ' + esc(c.notes) : '') + '</h4>' +
+          '<table class="mini"><tbody>'+histRows+'</tbody></table></div></td></tr>';
+      }
+      return row;
+    }).join('');
+  }
+
+  function renderCustomerOptions(){
+    var sel = document.getElementById('j-customer');
+    var current = sel.value;
+    sel.innerHTML = '<option value="">+ New customer</option>' + (currentCustomers||[]).slice()
+      .sort(function(a,b){ return a.name.localeCompare(b.name); })
+      .map(function(c){ return '<option value="'+c.id+'">'+esc(c.name)+'</option>'; }).join('');
+    sel.value = current;
+  }
+
+  function renderJobOptions(selectId, blankLabel){
+    var sel = document.getElementById(selectId);
+    if (!sel) return;
+    var current = sel.value;
+    var sorted = (currentJobs||[]).slice().sort(function(a,b){ return b.job_date.localeCompare(a.job_date); });
+    sel.innerHTML = '<option value="">'+blankLabel+'</option>' + sorted.map(function(j){
+      return '<option value="'+j.id+'">'+esc(j.client_name)+' — '+esc(j.service_type)+' ('+fmtDate(j.job_date)+')</option>';
+    }).join('');
+    sel.value = current;
+  }
+
+  // ---- Expenses ----
+  function renderExpenses(){
+    var el = document.getElementById('exp-body');
+    var list = (currentExpenses||[]).slice().sort(function(a,b){ return String(b.expense_date).localeCompare(String(a.expense_date)); });
+    if (!list.length){
+      el.innerHTML = '<tr><td colspan="6" class="empty-note">No expenses logged yet. Every one you add here is a deduction at tax time.</td></tr>';
+      return;
+    }
+    el.innerHTML = list.map(function(x){
+      var job = x.job_id ? (currentJobs||[]).find(function(j){ return String(j.id) === String(x.job_id); }) : null;
+      var actions = isLive
+        ? '<div class="actions-cell"><button class="icon-btn" type="button" data-action="exp-edit" data-id="'+x.id+'">Edit</button>' +
+          '<button class="icon-btn danger" type="button" data-action="exp-delete" data-id="'+x.id+'">Delete</button></div>'
+        : '';
+      return '<tr><td class="dt">'+fmtDate(x.expense_date)+'</td>' +
+        '<td>'+esc(x.category)+(x.notes ? '<div class="addr-sub">'+esc(x.notes)+'</div>' : '')+'</td>' +
+        '<td class="sub">'+esc(x.vendor||'—')+'</td>' +
+        '<td class="sub">'+(job ? esc(job.client_name) : 'Overhead')+'</td>' +
+        '<td class="num">'+fmtMoney2(x.amount)+'</td>' +
+        '<td>'+actions+'</td></tr>';
+    }).join('');
+  }
+
+  // ---- Mileage ----
+  function renderMileage(){
+    var el = document.getElementById('mile-body');
+    var p = currentProfile || DEMO_PROFILE;
+    var rate = Number((p && p.mileage_rate) || 0);
+    var list = (currentMileage||[]).slice().sort(function(a,b){ return String(b.log_date).localeCompare(String(a.log_date)); });
+    if (!list.length){
+      el.innerHTML = '<tr><td colspan="6" class="empty-note">No miles logged yet.</td></tr>';
+      return;
+    }
+    el.innerHTML = list.map(function(m){
+      var job = m.job_id ? (currentJobs||[]).find(function(j){ return String(j.id) === String(m.job_id); }) : null;
+      var actions = isLive
+        ? '<div class="actions-cell"><button class="icon-btn danger" type="button" data-action="mile-delete" data-id="'+m.id+'">Delete</button></div>'
+        : '';
+      return '<tr><td class="dt">'+fmtDate(m.log_date)+'</td>' +
+        '<td>'+esc(m.purpose||'—')+'</td>' +
+        '<td class="sub">'+(job ? esc(job.client_name) : '—')+'</td>' +
+        '<td class="num">'+Number(m.miles||0).toFixed(1)+'</td>' +
+        '<td class="num">'+(rate ? fmtMoney2(Number(m.miles||0) * rate) : '—')+'</td>' +
+        '<td>'+actions+'</td></tr>';
+    }).join('');
+  }
+
+  // ---- Compliance / business dates ----
+  function complianceStatus(item){
+    if (!item.due_date) return { label:'No date set', cls:'none', days:null };
+    var days = daysSince(item.due_date); // positive = past due
+    if (days > 0) return { label:days+' days overdue', cls:'bad', days:days };
+    if (days > -30) return { label:'Due in '+Math.abs(days)+' days', cls:'warn', days:days };
+    return { label:'OK', cls:'ok', days:days };
+  }
+  function renderCompliance(){
+    var el = document.getElementById('comp-body');
+    var list = (currentCompliance||[]).slice().sort(function(a,b){
+      if (!a.due_date) return 1; if (!b.due_date) return -1;
+      return a.due_date.localeCompare(b.due_date);
+    });
+    if (!list.length){
+      el.innerHTML = '<tr><td colspan="4" class="empty-note">Nothing tracked yet — add your insurance, license, and LLC registration dates.</td></tr>';
+      return;
+    }
+    el.innerHTML = list.map(function(k){
+      var st = complianceStatus(k);
+      var pill = st.cls === 'bad' ? '<span class="due-pill">'+st.label+'</span>'
+        : st.cls === 'warn' ? '<span class="due-pill">'+st.label+'</span>'
+        : st.cls === 'ok' ? '<span class="due-pill ok">'+st.label+'</span>'
+        : '<span class="due-pill none">'+st.label+'</span>';
+      var actions = isLive
+        ? '<div class="actions-cell">' +
+          (k.interval_months ? '<button class="icon-btn" type="button" data-action="comp-renew" data-id="'+k.id+'">Renewed</button>' : '') +
+          '<button class="icon-btn" type="button" data-action="comp-edit" data-id="'+k.id+'">Edit</button>' +
+          '<button class="icon-btn danger" type="button" data-action="comp-delete" data-id="'+k.id+'">Delete</button></div>'
+        : '';
+      return '<tr><td><b>'+esc(k.name)+'</b>'+(k.notes ? '<div class="addr-sub">'+esc(k.notes)+'</div>' : '')+'</td>' +
+        '<td class="dt">'+(k.due_date ? fmtDateSmart(k.due_date) : '—')+'</td>' +
+        '<td>'+pill+'</td><td>'+actions+'</td></tr>';
+    }).join('');
+  }
+
+  // ---- Reviews ----
+  function buildReviewMessage(job){
+    var p = currentProfile || DEMO_PROFILE || {};
+    var biz = p.business_name || 'CK Pressure Washing';
+    var first = String(job.client_name || '').split(' ')[0] || 'there';
+    var msg = 'Hi ' + first + ', thanks again for letting ' + biz + ' handle your ' +
+      String(job.service_type || 'job').toLowerCase() + '. If you were happy with how it turned out, ' +
+      'a quick review would really help us out';
+    msg += p.review_link ? ': ' + p.review_link : '.';
+    return msg;
+  }
+
+  // ---- Today's route ----
+  function todaysJobs(){
+    var t = todayYmd();
+    return (currentJobs||[]).filter(function(j){
+      return j.job_date === t && j.status !== 'declined' && j.status !== 'quoted';
+    }).sort(function(a,b){ return String(a.start_time||'99:99').localeCompare(String(b.start_time||'99:99')); });
+  }
+  function renderRoute(){
+    var el = document.getElementById('route-list');
+    var jobs = todaysJobs();
+    if (!jobs.length){
+      el.innerHTML = '<li><span class="route-body">Nothing scheduled for today.</span></li>';
+      return;
+    }
+    el.innerHTML = jobs.map(function(j){
+      var w = getWorker(j.assigned_worker_id);
+      var dur = j.duration_minutes ? ' · ' + j.duration_minutes + ' min' : '';
+      return '<li>' +
+        '<span class="route-time">'+(j.start_time ? fmtTime(j.start_time) : '—')+'</span>' +
+        '<span class="route-body"><b>'+esc(j.client_name)+'</b> — '+esc(j.service_type)+
+          '<div class="sub">'+esc(j.address)+(w ? ' · ' + esc(w.name) : ' · unassigned')+dur+'</div></span>' +
+        '<span class="route-actions">' +
+          '<a class="icon-btn" href="'+mapsLink(j.address)+'" target="_blank" rel="noopener">Map</a>' +
+          '<button class="icon-btn" type="button" data-action="route-open" data-id="'+j.id+'">Open</button>' +
+        '</span></li>';
+    }).join('');
+  }
+  function buildRouteMessage(){
+    var jobs = todaysJobs();
+    if (!jobs.length) return 'Nothing scheduled today.';
+    var lines = ['Route for ' + new Date().toLocaleDateString('en-US',{weekday:'long', month:'short', day:'numeric'}) + ':'];
+    jobs.forEach(function(j, i){
+      var w = getWorker(j.assigned_worker_id);
+      lines.push('');
+      lines.push((i+1) + '. ' + (j.start_time ? fmtTime(j.start_time) + ' — ' : '') + j.client_name + ' (' + j.service_type + ')');
+      lines.push(j.address);
+      if (w) lines.push('Assigned: ' + w.name);
+      lines.push(mapsLink(j.address));
+    });
+    return lines.join('\n');
+  }
+
+  // ---- Photo gallery ----
+  function renderGallery(){
+    var grid = document.getElementById('gallery-grid');
+    var empty = document.getElementById('gallery-empty');
+    var jobs = (currentJobs||[]).filter(function(j){
+      if (!j.photos || !j.photos.length) return false;
+      return !galleryService || j.service_type === galleryService;
+    }).sort(function(a,b){ return b.job_date.localeCompare(a.job_date); });
+
+    if (!jobs.length){ grid.innerHTML = ''; empty.hidden = false; return; }
+    empty.hidden = true;
+    grid.innerHTML = jobs.map(function(j){
+      var before = j.photos.filter(function(p){ return p.kind === 'before'; });
+      var after = j.photos.filter(function(p){ return p.kind === 'after'; });
+      var pairs = [];
+      if (before.length) pairs.push('<figure><img src="'+esc(before[0].photo_url)+'" alt="Before"><figcaption>Before</figcaption></figure>');
+      if (after.length) pairs.push('<figure><img src="'+esc(after[0].photo_url)+'" alt="After"><figcaption>After</figcaption></figure>');
+      if (!pairs.length){
+        pairs = j.photos.map(function(p){
+          return '<figure><img src="'+esc(p.photo_url)+'" alt="'+esc(p.kind)+'"><figcaption>'+esc(p.kind)+'</figcaption></figure>';
+        });
+      }
+      return '<div class="gallery-card">' +
+        '<div class="gallery-pair'+(pairs.length === 1 ? ' single' : '')+'">'+pairs.join('')+'</div>' +
+        '<div class="gallery-meta">'+esc(j.service_type)+
+          '<div class="sub">'+esc(j.client_name)+' · '+fmtDate(j.job_date)+'</div></div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ---- Lead sources ----
+  function renderLeadSources(){
+    var el = document.getElementById('source-body');
+    var by = {};
+    (currentLeads||[]).forEach(function(l){
+      var key = l.source || 'Untagged';
+      var s = by[key] || (by[key] = {total:0, interested:0, booked:0});
+      s.total += 1;
+      if (l.status === 'interested') s.interested += 1;
+      if (l.status === 'scheduled') s.booked += 1;
+    });
+    var keys = Object.keys(by).sort(function(a,b){ return by[b].total - by[a].total; });
+    if (!keys.length){
+      el.innerHTML = '<tr><td colspan="5" class="empty-note">No leads yet.</td></tr>';
+      return;
+    }
+    el.innerHTML = keys.map(function(k){
+      var s = by[k];
+      var hit = s.total ? ((s.interested + s.booked) / s.total) * 100 : 0;
+      return '<tr><td><b>'+esc(k)+'</b></td><td class="num">'+s.total+'</td>' +
+        '<td class="num">'+s.interested+'</td><td class="num">'+s.booked+'</td>' +
+        '<td class="num">'+hit.toFixed(0)+'%</td></tr>';
+    }).join('');
+  }
+
+  // ---- Home alerts ----
+  function renderAlerts(){
+    var el = document.getElementById('alert-list');
+    var items = [];
+
+    outstandingJobs().forEach(function(j){
+      var days = daysSince(j.job_date) || 0;
+      if (days < 14) return;
+      items.push({
+        cls: days >= 45 ? 'bad' : 'warn',
+        text: fmtMoney2(jobBalanceDue(j)) + ' owed by ' + esc(j.client_name),
+        sub: 'Job was ' + days + ' days ago and still unpaid',
+        action: '<button class="icon-btn" type="button" data-action="view-invoice" data-id="'+j.id+'">Invoice</button>',
+        sort: 1000 + days
+      });
+    });
+
+    customersDueForService().forEach(function(r){
+      items.push({
+        cls: 'info',
+        text: esc(r.customer.name) + ' is due for service again',
+        sub: 'Last done ' + fmtDateSmart(r.stats.lastService) + (r.customer.phone ? ' · ' + esc(r.customer.phone) : ''),
+        action: '<button class="icon-btn" type="button" data-action="alert-customers">Customers</button>',
+        sort: 500 + Math.min(r.stats.dueDays, 400)
+      });
+    });
+
+    (currentCompliance||[]).forEach(function(k){
+      var st = complianceStatus(k);
+      if (st.cls !== 'bad' && st.cls !== 'warn') return;
+      items.push({
+        cls: st.cls,
+        text: esc(k.name) + ' — ' + st.label,
+        sub: k.due_date ? 'Due ' + fmtDateSmart(k.due_date) : '',
+        action: '<button class="icon-btn" type="button" data-action="alert-invoices">Open</button>',
+        sort: 800 + (st.days || 0)
+      });
+    });
+
+    (currentJobs||[]).forEach(function(j){
+      if (j.status !== 'paid' || j.review_requested_at || j.review_received) return;
+      var days = daysSince(j.job_date) || 0;
+      if (days > 60) return;
+      items.push({
+        cls: 'info',
+        text: 'Ask ' + esc(j.client_name) + ' for a review',
+        sub: 'Paid ' + (j.paid_date ? fmtDateSmart(j.paid_date) : fmtDateSmart(j.job_date)) + ' — reviews are your best marketing',
+        action: '<button class="icon-btn" type="button" data-action="review-copy" data-id="'+j.id+'">Copy Ask</button>',
+        sort: 100
+      });
+    });
+
+    if (!items.length){
+      el.innerHTML = '<li><span class="all-clear">Nothing needs attention — you\'re all caught up.</span></li>';
+      return;
+    }
+    items.sort(function(a,b){ return b.sort - a.sort; });
+    el.innerHTML = items.slice(0, 12).map(function(it){
+      return '<li><span class="alert-dot '+it.cls+'"></span>' +
+        '<span class="alert-body">'+it.text+(it.sub ? '<div class="sub">'+it.sub+'</div>' : '')+'</span>' +
+        '<span class="alert-go">'+it.action+'</span></li>';
+    }).join('');
+  }
+
+  // ---- CSV export ----
+  function csvCell(v){
+    var s = v == null ? '' : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function downloadCsv(filename, header, rows){
+    var csv = [header.map(csvCell).join(',')].concat(rows.map(function(r){ return r.map(csvCell).join(','); })).join('\n');
+    var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  function exportData(kind){
+    var stamp = todayYmd();
+    if (kind === 'jobs'){
+      downloadCsv('ck-jobs-'+stamp+'.csv',
+        ['Date','Client','Address','Service','Status','Total','Received','Balance','Paid Date','Method','Worker','Labor Hours','Labor Cost','Job Costs','Profit','Notes'],
+        (currentJobs||[]).slice().sort(function(a,b){ return a.job_date.localeCompare(b.job_date); }).map(function(j){
+          var w = getWorker(j.assigned_worker_id);
+          return [j.job_date, j.client_name, j.address, j.service_type, STATUS_LABEL[j.status]||j.status,
+            invoiceTotal(j).toFixed(2), amountReceived(j).toFixed(2), jobBalanceDue(j).toFixed(2),
+            j.paid_date||'', j.payment_method||'', w?w.name:'', j.labor_hours||'',
+            jobLaborCost(j).toFixed(2), jobExpenseTotal(j.id).toFixed(2), jobProfit(j).toFixed(2), j.notes||''];
+        }));
+    } else if (kind === 'expenses'){
+      downloadCsv('ck-expenses-'+stamp+'.csv',
+        ['Date','Category','Vendor','Amount','Job','Type','Notes'],
+        (currentExpenses||[]).slice().sort(function(a,b){ return String(a.expense_date).localeCompare(String(b.expense_date)); }).map(function(x){
+          var job = x.job_id ? (currentJobs||[]).find(function(j){ return String(j.id)===String(x.job_id); }) : null;
+          return [x.expense_date, x.category, x.vendor||'', Number(x.amount||0).toFixed(2),
+            job ? job.client_name + ' (' + job.job_date + ')' : '', x.job_id ? 'Job cost' : 'Overhead', x.notes||''];
+        }));
+    } else if (kind === 'customers'){
+      downloadCsv('ck-customers-'+stamp+'.csv',
+        ['Name','Phone','Email','Address','Jobs','Lifetime Value','Last Service','Next Due','Notes'],
+        (currentCustomers||[]).map(function(c){
+          var s = customerStats(c);
+          return [c.name, c.phone||'', c.email||'', c.address||'', s.doneCount,
+            s.lifetime.toFixed(2), s.lastService||'', s.nextDue||'', c.notes||''];
+        }));
+    } else if (kind === 'mileage'){
+      var p = currentProfile || DEMO_PROFILE;
+      var rate = Number((p && p.mileage_rate) || 0);
+      downloadCsv('ck-mileage-'+stamp+'.csv',
+        ['Date','Miles','Purpose','Job','Rate','Deduction'],
+        (currentMileage||[]).slice().sort(function(a,b){ return String(a.log_date).localeCompare(String(b.log_date)); }).map(function(m){
+          var job = m.job_id ? (currentJobs||[]).find(function(j){ return String(j.id)===String(m.job_id); }) : null;
+          return [m.log_date, Number(m.miles||0).toFixed(1), m.purpose||'', job?job.client_name:'',
+            rate ? rate.toFixed(3) : '', rate ? (Number(m.miles||0)*rate).toFixed(2) : ''];
+        }));
+    }
+  }
+
   function renderJobs(jobs){
     var el = document.getElementById('jobs-body');
     var sorted = jobs.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
@@ -746,17 +1803,21 @@
       var textLink = (isLive && worker && worker.phone)
         ? '<a class="icon-btn" href="'+smsHref(worker.phone, buildWorkOrderMessage(j))+'" title="Text this job to '+worker.name+'">Text</a>'
         : '';
+      var reviewBtn = (j.status === 'paid' && !j.review_received)
+        ? '<button class="icon-btn" type="button" data-action="review-copy" data-id="'+j.id+'" title="Copy a review request for this customer">Review</button>'
+        : '';
       var actions = isLive
         ? '<div class="actions-cell">' +
             '<button class="icon-btn" type="button" data-action="edit" data-id="'+j.id+'">Edit</button>' +
             '<button class="icon-btn danger" type="button" data-action="delete" data-id="'+j.id+'">Delete</button>' +
-            textLink +
+            textLink + reviewBtn +
           '</div>'
         : '';
-      return '<tr><td><b>'+j.client_name+'</b><div class="addr-sub">'+j.address+'</div></td>' +
-        '<td>'+j.service_type+'</td>' +
-        '<td class="date">'+fmtDate(j.job_date)+'</td>' +
-        '<td class="money">'+fmtMoney(j.price)+'</td>' +
+      var bal = jobBalanceDue(j);
+      return '<tr><td><b>'+esc(j.client_name)+'</b><div class="addr-sub">'+esc(j.address)+'</div></td>' +
+        '<td>'+esc(j.service_type)+'</td>' +
+        '<td class="date">'+fmtDate(j.job_date)+(j.start_time ? '<div class="addr-sub">'+fmtTime(j.start_time)+'</div>' : '')+'</td>' +
+        '<td class="money">'+fmtMoney(invoiceTotal(j))+(bal > 0 ? '<div class="addr-sub">'+fmtMoney(bal)+' due</div>' : '')+'</td>' +
         '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
         '<td>'+photoThumbs(j.photos)+'</td>' +
         '<td>'+actions+'</td></tr>';
@@ -767,13 +1828,21 @@
     var el = document.getElementById('invoices-body');
     var sorted = jobs.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
     el.innerHTML = sorted.map(function(j){
-      return '<tr><td>#'+j.id+'</td>' +
-        '<td><b>'+j.client_name+'</b><div class="addr-sub">'+j.address+'</div></td>' +
+      var isQuote = j.status === 'quoted' || j.status === 'declined';
+      var label = isQuote ? 'Estimate' : 'Invoice';
+      return '<tr><td>'+label+' #'+j.id+'</td>' +
+        '<td><b>'+esc(j.client_name)+'</b><div class="addr-sub">'+esc(j.address)+'</div></td>' +
         '<td class="date">'+fmtDate(j.job_date)+'</td>' +
         '<td class="money">'+fmtMoney(invoiceTotal(j))+'</td>' +
         '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
         '<td><button class="btn-add small" type="button" data-action="view-invoice" data-id="'+j.id+'">View</button></td></tr>';
     }).join('');
+
+    var wr = computeWinRate(jobs);
+    var note = document.getElementById('winrate-note');
+    if (wr.rate == null) note.textContent = wr.pending ? wr.pending + ' quote(s) still open' : '';
+    else note.textContent = 'Win rate ' + wr.rate.toFixed(0) + '% (' + wr.won + ' won / ' + wr.lost + ' lost)' +
+      (wr.pending ? ' · ' + wr.pending + ' still open' : '');
   }
 
   function renderLeads(leads){
@@ -786,12 +1855,19 @@
             '<button class="icon-btn danger" type="button" data-action="delete-lead" data-id="'+l.id+'">Delete</button>' +
           '</div>'
         : '';
-      return '<li><span class="lead-addr">'+l.address+(l.notes ? '<br><span class="addr-sub">'+l.notes+'</span>' : '')+'</span>' +
-        '<span class="lead-sub"><span>'+(l.subdivision||'')+'</span><span style="display:flex;align-items:center;gap:8px;"><span class="chip '+l.status+'">'+LEAD_LABEL[l.status]+'</span>'+actions+'</span></span></li>';
+      var meta = [l.subdivision, l.source].filter(Boolean).join(' · ');
+      return '<li><span class="lead-addr">'+esc(l.address)+(l.notes ? '<br><span class="addr-sub">'+esc(l.notes)+'</span>' : '')+'</span>' +
+        '<span class="lead-sub"><span>'+esc(meta)+'</span><span style="display:flex;align-items:center;gap:8px;"><span class="chip '+l.status+'">'+LEAD_LABEL[l.status]+'</span>'+actions+'</span></span></li>';
     }).join('');
   }
 
   // ---- Workers ----
+  function workerPayLabel(w){
+    if (!w.pay_rate) return '';
+    return w.pay_type === 'flat'
+      ? fmtMoney2(w.pay_rate) + ' per job'
+      : fmtMoney2(w.pay_rate) + '/hr';
+  }
   function renderWorkers(workers){
     var el = document.getElementById('workers-list');
     if (!workers || !workers.length){ el.innerHTML = '<li class="worker-empty">No workers yet — add one above.</li>'; return; }
@@ -802,7 +1878,8 @@
             '<button class="icon-btn danger" type="button" data-action="remove-worker" data-id="'+w.id+'">Remove</button>' +
           '</div>'
         : '';
-      return '<li><span class="worker-name"><span>'+w.name+'</span>'+(w.phone ? '<span class="worker-phone">'+w.phone+'</span>' : '')+'</span>'+actions+'</li>';
+      var sub = [w.phone, workerPayLabel(w)].filter(Boolean).join(' · ');
+      return '<li><span class="worker-name"><span>'+esc(w.name)+'</span>'+(sub ? '<span class="worker-phone">'+esc(sub)+'</span>' : '')+'</span>'+actions+'</li>';
     }).join('');
   }
 
@@ -822,6 +1899,8 @@
     editingWorkerId = worker.id;
     document.getElementById('worker-name-input').value = worker.name;
     document.getElementById('worker-phone-input').value = worker.phone || '';
+    document.getElementById('worker-pay-type').value = worker.pay_type || 'hourly';
+    document.getElementById('worker-pay-rate').value = worker.pay_rate != null ? worker.pay_rate : '';
     workerSaveBtn.textContent = 'Update';
     workerCancelBtn.hidden = false;
     document.getElementById('worker-name-input').focus();
@@ -839,7 +1918,12 @@
       workerError.hidden = false;
       return;
     }
-    var fields = { tenant_id: currentTenantId, name: name, phone: phone || null };
+    var payRateRaw = document.getElementById('worker-pay-rate').value;
+    var fields = {
+      tenant_id: currentTenantId, name: name, phone: phone || null,
+      pay_type: document.getElementById('worker-pay-type').value,
+      pay_rate: payRateRaw === '' ? null : (parseFloat(payRateRaw) || 0)
+    };
     var res = editingWorkerId != null
       ? await supabaseClient.from('workers').update(fields).eq('id', editingWorkerId)
       : await supabaseClient.from('workers').insert(fields);
@@ -888,10 +1972,12 @@
       var dateStr = ymd(d);
       var outside = d.getMonth() !== month;
       var dayJobs = jobsByDate[dateStr] || [];
+      dayJobs.sort(function(a,b){ return String(a.start_time||'99:99').localeCompare(String(b.start_time||'99:99')); });
       var chips = dayJobs.slice(0,3).map(function(j){
         var who = workerName(j.assigned_worker_id);
-        var tip = j.client_name + ' — ' + j.service_type + (who ? ' — ' + who : '');
-        return '<button type="button" class="cal-chip '+j.status+'" data-action="open-job" data-id="'+j.id+'" title="'+tip+'">'+j.client_name+(who ? ' · '+who : '')+'</button>';
+        var tip = (j.start_time ? fmtTime(j.start_time) + ' — ' : '') + j.client_name + ' — ' + j.service_type + (who ? ' — ' + who : '');
+        var timeBit = j.start_time ? '<span class="cal-chip-time">'+fmtTime(j.start_time).replace(':00','')+'</span> ' : '';
+        return '<button type="button" class="cal-chip '+j.status+'" data-action="open-job" data-id="'+j.id+'" title="'+esc(tip)+'">'+timeBit+esc(j.client_name)+(who ? ' · '+esc(who) : '')+'</button>';
       }).join('');
       var more = dayJobs.length > 3 ? '<span class="cal-more">+'+(dayJobs.length-3)+' more</span>' : '';
       cellsHtml +=
@@ -938,6 +2024,9 @@
       document.getElementById('p-email').value = profile ? (profile.email||'') : '';
       document.getElementById('p-address').value = profile ? (profile.address||'') : '';
       document.getElementById('p-tax').value = profile ? (profile.default_tax_rate||0) : 0;
+      document.getElementById('p-interval').value = profile && profile.default_service_interval_months != null ? profile.default_service_interval_months : '';
+      document.getElementById('p-mileage').value = profile && profile.mileage_rate != null ? profile.mileage_rate : '';
+      document.getElementById('p-review').value = profile ? (profile.review_link||'') : '';
       var preview = document.getElementById('p-logo-preview');
       if (profile && profile.logo_path){ preview.src = profile.logo_path; preview.hidden = false; }
       else { preview.hidden = true; }
@@ -966,6 +2055,10 @@
       var lineItemsQ = supabaseClient.from('job_line_items').select('*').order('sort_order', {ascending:true});
       var profileQ = supabaseClient.from('business_profile').select('*').maybeSingle();
       var workersQ = supabaseClient.from('workers').select('*').order('name', {ascending:true});
+      var customersQ = supabaseClient.from('customers').select('*').order('name', {ascending:true});
+      var expensesQ = supabaseClient.from('expenses').select('*').order('expense_date', {ascending:false});
+      var mileageQ = supabaseClient.from('mileage_logs').select('*').order('log_date', {ascending:false});
+      var complianceQ = supabaseClient.from('compliance_items').select('*').order('due_date', {ascending:true});
       if (currentTenantId != null){
         jobsQ = jobsQ.eq('tenant_id', currentTenantId);
         leadsQ = leadsQ.eq('tenant_id', currentTenantId);
@@ -973,6 +2066,10 @@
         lineItemsQ = lineItemsQ.eq('tenant_id', currentTenantId);
         profileQ = profileQ.eq('tenant_id', currentTenantId);
         workersQ = workersQ.eq('tenant_id', currentTenantId);
+        customersQ = customersQ.eq('tenant_id', currentTenantId);
+        expensesQ = expensesQ.eq('tenant_id', currentTenantId);
+        mileageQ = mileageQ.eq('tenant_id', currentTenantId);
+        complianceQ = complianceQ.eq('tenant_id', currentTenantId);
       }
       var jobsRes = await jobsQ;
       var leadsRes = await leadsQ;
@@ -980,8 +2077,14 @@
       var lineItemsRes = await lineItemsQ;
       var profileRes = await profileQ;
       var workersRes = await workersQ;
-      if (jobsRes.error || leadsRes.error || photosRes.error || lineItemsRes.error || profileRes.error || workersRes.error){
-        console.error('Supabase error:', (jobsRes.error||leadsRes.error||photosRes.error||lineItemsRes.error||profileRes.error||workersRes.error).message);
+      var customersRes = await customersQ;
+      var expensesRes = await expensesQ;
+      var mileageRes = await mileageQ;
+      var complianceRes = await complianceQ;
+      var firstError = jobsRes.error||leadsRes.error||photosRes.error||lineItemsRes.error||profileRes.error||
+        workersRes.error||customersRes.error||expensesRes.error||mileageRes.error||complianceRes.error;
+      if (firstError){
+        console.error('Supabase error:', firstError.message);
         return null;
       }
       var photosByJob = {};
@@ -991,7 +2094,11 @@
       var jobs = (jobsRes.data||[]).map(function(j){
         return Object.assign({}, j, {photos: photosByJob[j.id] || [], line_items: lineItemsByJob[j.id] || []});
       });
-      return { jobs: jobs, leads: leadsRes.data || [], profile: profileRes.data || null, workers: workersRes.data || [] };
+      return {
+        jobs: jobs, leads: leadsRes.data || [], profile: profileRes.data || null, workers: workersRes.data || [],
+        customers: customersRes.data || [], expenses: expensesRes.data || [],
+        mileage: mileageRes.data || [], compliance: complianceRes.data || []
+      };
     } catch(e){ console.error('Supabase fetch failed:', e); return null; }
   }
 
@@ -1089,18 +2196,38 @@
     currentJobs = live ? live.jobs : DEMO_JOBS;
     currentLeads = live ? live.leads : DEMO_LEADS;
     currentWorkers = live ? live.workers : DEMO_WORKERS;
+    currentCustomers = live ? live.customers : DEMO_CUSTOMERS;
+    currentExpenses = live ? live.expenses : DEMO_EXPENSES;
+    currentMileage = live ? live.mileage : DEMO_MILEAGE;
+    currentCompliance = live ? live.compliance : DEMO_COMPLIANCE;
     var profile = live ? live.profile : DEMO_PROFILE;
+    currentProfile = profile;
     renderBrand(profile);
     renderProfileForm(profile);
     renderKPIs(computeKPIs(currentJobs, currentLeads));
+    renderAlerts();
     renderJobs(currentJobs);
     renderInvoices(currentJobs);
     renderFinancialsKPIs(computeFinancials(currentJobs));
+    renderPnL();
+    renderServiceProfit();
+    renderAging();
     renderChart(live ? weeklyRevenueBuckets(currentJobs) : DEMO_CHART);
     renderLeads(currentLeads);
+    renderLeadSources();
     renderWorkers(currentWorkers);
     renderWorkerOptions(currentWorkers);
     renderCalendar(currentJobs);
+    renderRoute();
+    renderCustomerKPIs();
+    renderCustomers();
+    renderCustomerOptions();
+    renderExpenses();
+    renderMileage();
+    renderCompliance();
+    renderGallery();
+    renderJobOptions('e-job', 'General overhead');
+    renderJobOptions('m-job', 'Not job-specific');
   }
 
   // ---- Tabs ----
@@ -1204,6 +2331,31 @@
       notes: document.getElementById('j-notes').value.trim()
     };
   }
+  // Labor cost is derived from the assigned worker's pay rate — shown live so you
+  // can see what a job costs you before you price it.
+  function updateLaborCost(){
+    var w = getWorker(document.getElementById('j-worker').value);
+    var hours = parseFloat(document.getElementById('j-labor-hours').value) || 0;
+    var cost = 0, note = '';
+    if (w && w.pay_rate){
+      cost = w.pay_type === 'flat' ? Number(w.pay_rate) : Number(w.pay_rate) * hours;
+      note = fmtMoney2(cost) + (w.pay_type === 'flat' ? ' (flat)' : ' (' + hours + ' hr)');
+    } else if (w){
+      note = 'No pay rate set for ' + w.name;
+    } else {
+      note = '—';
+    }
+    document.getElementById('j-labor-cost').value = note;
+  }
+  // Picking an existing customer fills in their name and address for you.
+  document.getElementById('j-customer').addEventListener('change', function(){
+    var c = getCustomer(this.value);
+    if (!c) return;
+    document.getElementById('j-client').value = c.name;
+    if (c.address) document.getElementById('j-address').value = c.address;
+  });
+  document.getElementById('j-labor-hours').addEventListener('input', updateLaborCost);
+  document.getElementById('j-worker').addEventListener('change', updateLaborCost);
   document.getElementById('j-worker').addEventListener('change', updateTextWorkerButtonVisibility);
   document.getElementById('job-text-worker-btn').addEventListener('click', function(){
     var worker = getWorker(document.getElementById('j-worker').value);
@@ -1237,10 +2389,12 @@
     renderExistingPhotos(null);
     renderLineItemRows([{description:'', quantity:1, unit_price:0}]);
     document.getElementById('j-worker').value = '';
+    document.getElementById('j-customer').value = '';
     document.getElementById('j-tax').value = (currentProfile ? currentProfile.default_tax_rate : (DEMO_PROFILE.default_tax_rate || 0)) || 0;
     if (prefillDate) document.getElementById('j-date').value = prefillDate;
     updateLineItemsTotal();
     updateTextWorkerButtonVisibility();
+    updateLaborCost();
     document.getElementById('j-client').focus();
   }
   function openJobFormForEdit(job){
@@ -1256,9 +2410,18 @@
     document.getElementById('j-notes').value = job.notes || '';
     document.getElementById('j-worker').value = job.assigned_worker_id || '';
     document.getElementById('j-tax').value = job.tax_rate || 0;
+    var cust = customerForJob(job);
+    document.getElementById('j-customer').value = cust ? cust.id : '';
+    document.getElementById('j-time').value = job.start_time || '';
+    document.getElementById('j-duration').value = job.duration_minutes != null ? job.duration_minutes : '';
+    document.getElementById('j-labor-hours').value = job.labor_hours != null ? job.labor_hours : '';
+    document.getElementById('j-paid-date').value = job.paid_date || '';
+    document.getElementById('j-payment-method').value = job.payment_method || '';
+    document.getElementById('j-amount-paid').value = job.amount_paid != null ? job.amount_paid : '';
     renderLineItemRows(getInvoiceItems(job));
     updateLineItemsTotal();
     updateTextWorkerButtonVisibility();
+    updateLaborCost();
     renderExistingPhotos(job.photos);
   }
   function closeJobForm(){
@@ -1318,15 +2481,44 @@
 
     jobSaving.hidden = false;
     try {
+      var clientName = document.getElementById('j-client').value.trim();
+      var clientAddress = document.getElementById('j-address').value.trim();
+
+      // Link to the chosen customer, or create one on the fly so every job has a
+      // real customer record behind it (that's what repeat-service tracking runs on).
+      var customerId = document.getElementById('j-customer').value || null;
+      if (!customerId){
+        var existing = (currentCustomers||[]).find(function(c){ return c.name.toLowerCase() === clientName.toLowerCase(); });
+        if (existing){
+          customerId = existing.id;
+        } else if (clientName){
+          var newCust = await supabaseClient.from('customers')
+            .insert({ tenant_id: currentTenantId, name: clientName, address: clientAddress || null })
+            .select().single();
+          if (newCust.error) throw new Error('Could not create customer: ' + newCust.error.message);
+          customerId = newCust.data.id;
+        }
+      }
+
+      var amountPaidRaw = document.getElementById('j-amount-paid').value;
+      var durationRaw = document.getElementById('j-duration').value;
+      var laborHoursRaw = document.getElementById('j-labor-hours').value;
       var jobFields = {
         tenant_id: currentTenantId,
-        client_name: document.getElementById('j-client').value.trim(),
-        address: document.getElementById('j-address').value.trim(),
+        customer_id: customerId,
+        client_name: clientName,
+        address: clientAddress,
         service_type: document.getElementById('j-service').value,
         price: total,
         tax_rate: taxRate,
         assigned_worker_id: workerVal || null,
         job_date: document.getElementById('j-date').value,
+        start_time: document.getElementById('j-time').value || null,
+        duration_minutes: durationRaw === '' ? null : (parseInt(durationRaw, 10) || null),
+        labor_hours: laborHoursRaw === '' ? null : (parseFloat(laborHoursRaw) || 0),
+        paid_date: document.getElementById('j-paid-date').value || null,
+        payment_method: document.getElementById('j-payment-method').value || null,
+        amount_paid: amountPaidRaw === '' ? null : (parseFloat(amountPaidRaw) || 0),
         status: document.getElementById('j-status').value,
         notes: document.getElementById('j-notes').value.trim()
       };
@@ -1388,12 +2580,17 @@
     if (!job) return;
     if (btn.dataset.action === 'edit') openJobFormForEdit(job);
     if (btn.dataset.action === 'delete') deleteJob(job.id);
+    if (btn.dataset.action === 'review-copy') handleReviewCopy(job.id, btn);
   });
 
   // ---- Invoices: view + print ----
   function openInvoice(jobId){
     var job = currentJobs.find(function(j){ return String(j.id) === String(jobId); });
     if (!job) return;
+    // A job you haven't won yet prints as an estimate, not a bill.
+    var isEstimate = job.status === 'quoted' || job.status === 'declined';
+    var docTitle = isEstimate ? 'ESTIMATE' : 'INVOICE';
+    var billLabel = isEstimate ? 'Prepared For' : 'Bill To';
     var totals = computeInvoiceTotals(job);
     var profile = currentProfile || DEMO_PROFILE || {};
     var bizName = profile.business_name || 'CK Pressure Washing';
@@ -1416,15 +2613,21 @@
     document.getElementById('invoice-sheet').innerHTML =
       '<div class="invoice-head">' +
         '<div class="invoice-brand">'+logoHtml+'<div class="biz-name">'+bizName+'</div><div class="biz-meta">'+metaLines+'</div></div>' +
-        '<div class="invoice-title"><h3>INVOICE</h3><div class="inv-meta">#'+job.id+'<br>'+fmtDate(job.job_date)+'</div></div>' +
+        '<div class="invoice-title"><h3>'+docTitle+'</h3><div class="inv-meta">#'+job.id+'<br>'+fmtDate(job.job_date)+'</div></div>' +
       '</div>' +
-      '<div class="invoice-billto"><div class="label">Bill To</div><div><b>'+job.client_name+'</b><br>'+job.address+'</div></div>' +
+      '<div class="invoice-billto"><div class="label">'+billLabel+'</div><div><b>'+esc(job.client_name)+'</b><br>'+esc(job.address)+'</div></div>' +
       '<table class="invoice-lines"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>'+linesHtml+'</tbody></table>' +
       '<div class="invoice-totals">' +
         '<div class="invoice-total-row"><span>Subtotal</span><span>'+fmtMoney(totals.subtotal)+'</span></div>' +
         taxRowHtml +
         '<div class="invoice-total-row grand"><span>Total</span><span>'+fmtMoney(totals.total)+'</span></div>' +
       '</div>' +
+      (!isEstimate && amountReceived(job) > 0
+        ? '<div class="invoice-status-row"><span>Paid'+(job.payment_method ? ' ('+esc(job.payment_method)+(job.paid_date ? ', '+fmtDate(job.paid_date) : '')+')' : '')+'</span><span>'+fmtMoney2(amountReceived(job))+'</span></div>'
+        : '') +
+      (!isEstimate && jobBalanceDue(job) > 0
+        ? '<div class="invoice-status-row"><span><b>Balance Due</b></span><span><b>'+fmtMoney2(jobBalanceDue(job))+'</b></span></div>'
+        : '') +
       '<div class="invoice-status-row"><span>Status</span><span class="chip '+job.status+'">'+STATUS_LABEL[job.status]+'</span></div>' +
       photosHtml +
       '<div class="invoice-actions no-print">' +
@@ -1495,6 +2698,11 @@
         email: document.getElementById('p-email').value.trim(),
         address: document.getElementById('p-address').value.trim(),
         default_tax_rate: parseFloat(document.getElementById('p-tax').value) || 0,
+        default_service_interval_months: document.getElementById('p-interval').value === ''
+          ? null : (parseInt(document.getElementById('p-interval').value, 10) || null),
+        mileage_rate: document.getElementById('p-mileage').value === ''
+          ? null : (parseFloat(document.getElementById('p-mileage').value) || 0),
+        review_link: document.getElementById('p-review').value.trim() || null,
         logo_path: logoPath
       };
       var res = await supabaseClient.from('business_profile').upsert(fields, {onConflict:'tenant_id'}).select().single();
@@ -1502,6 +2710,7 @@
       currentProfile = res.data;
       pendingLogoFile = null;
       renderBrand(currentProfile);
+      render();
     } catch(err){
       profileError.textContent = 'Could not save: ' + err.message;
       profileError.hidden = false;
@@ -1532,6 +2741,7 @@
     document.getElementById('l-address').value = lead.address;
     document.getElementById('l-sub').value = lead.subdivision || '';
     document.getElementById('l-status').value = lead.status;
+    document.getElementById('l-source').value = lead.source || '';
     document.getElementById('l-notes').value = lead.notes || '';
     document.getElementById('l-address').focus();
   }
@@ -1572,6 +2782,7 @@
       address: document.getElementById('l-address').value.trim(),
       subdivision: document.getElementById('l-sub').value.trim(),
       status: document.getElementById('l-status').value,
+      source: document.getElementById('l-source').value || null,
       notes: document.getElementById('l-notes').value.trim()
     };
     var result = editingLeadId != null
@@ -1581,6 +2792,320 @@
     closeLeadForm();
     render();
   });
+
+  // ================= Wiring for the business-management sections =================
+  async function copyText(text, btn, doneLabel){
+    try {
+      await navigator.clipboard.writeText(text);
+      if (btn){
+        var original = btn.textContent;
+        btn.textContent = doneLabel || 'Copied!';
+        setTimeout(function(){ btn.textContent = original; }, 1500);
+      }
+    } catch(e){
+      window.prompt('Copy this:', text);
+    }
+  }
+  function requireLive(errEl){
+    if (!supabaseClient || currentTenantId == null){
+      if (errEl){ errEl.textContent = "Can't save — sign in first."; errEl.hidden = false; }
+      return false;
+    }
+    return true;
+  }
+
+  // ---- Customers ----
+  var custForm = document.getElementById('cust-form');
+  var custBtn = document.getElementById('cust-add-btn');
+  var custError = document.getElementById('cust-error');
+  function closeCustForm(){
+    custForm.hidden = true; custForm.reset(); custBtn.hidden = false;
+    custError.hidden = true; editingCustomerId = null;
+    document.getElementById('cust-form-title').textContent = 'Add Customer';
+  }
+  custBtn.addEventListener('click', function(){
+    custForm.hidden = false; custBtn.hidden = true; document.getElementById('c-name').focus();
+  });
+  document.getElementById('cust-cancel').addEventListener('click', closeCustForm);
+  custForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    custError.hidden = true;
+    if (!requireLive(custError)) return;
+    var intervalRaw = document.getElementById('c-interval').value;
+    var fields = {
+      tenant_id: currentTenantId,
+      name: document.getElementById('c-name').value.trim(),
+      address: document.getElementById('c-address').value.trim() || null,
+      phone: document.getElementById('c-phone').value.trim() || null,
+      email: document.getElementById('c-email').value.trim() || null,
+      service_interval_months: intervalRaw === '' ? null : (parseInt(intervalRaw, 10) || null),
+      notes: document.getElementById('c-notes').value.trim() || null
+    };
+    var res = editingCustomerId != null
+      ? await supabaseClient.from('customers').update(fields).eq('id', editingCustomerId)
+      : await supabaseClient.from('customers').insert(fields);
+    if (res.error){ custError.textContent = 'Could not save: ' + res.error.message; custError.hidden = false; return; }
+    closeCustForm();
+    render();
+  });
+  document.getElementById('cust-body').addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.dataset.action;
+    if (action === 'cust-history'){
+      expandedCustomerId = String(expandedCustomerId) === String(btn.dataset.id) ? null : btn.dataset.id;
+      renderCustomers();
+      return;
+    }
+    if (action === 'cust-open-job'){
+      var job = currentJobs.find(function(j){ return String(j.id) === String(btn.dataset.id); });
+      if (job) goToJobInHome(job);
+      return;
+    }
+    var cust = getCustomer(btn.dataset.id);
+    if (!cust) return;
+    if (action === 'cust-edit'){
+      editingCustomerId = cust.id;
+      custForm.hidden = false; custBtn.hidden = true;
+      document.getElementById('cust-form-title').textContent = 'Edit ' + cust.name;
+      document.getElementById('c-name').value = cust.name;
+      document.getElementById('c-address').value = cust.address || '';
+      document.getElementById('c-phone').value = cust.phone || '';
+      document.getElementById('c-email').value = cust.email || '';
+      document.getElementById('c-interval').value = cust.service_interval_months != null ? cust.service_interval_months : '';
+      document.getElementById('c-notes').value = cust.notes || '';
+      custForm.scrollIntoView({behavior:'smooth', block:'nearest'});
+      document.getElementById('c-name').focus();
+    }
+    if (action === 'cust-delete'){
+      if (!confirm('Delete ' + cust.name + '? Their jobs stay, but lose the link to this customer record.')) return;
+      var res = await supabaseClient.from('customers').delete().eq('id', cust.id);
+      if (res.error){ alert('Could not delete: ' + res.error.message); return; }
+      render();
+    }
+  });
+
+  // ---- Expenses ----
+  var expForm = document.getElementById('exp-form');
+  var expBtn = document.getElementById('exp-add-btn');
+  var expError = document.getElementById('exp-error');
+  function closeExpForm(){
+    expForm.hidden = true; expForm.reset(); expBtn.hidden = false;
+    expError.hidden = true; editingExpenseId = null;
+    document.getElementById('exp-form-title').textContent = 'Add Expense';
+  }
+  expBtn.addEventListener('click', function(){
+    expForm.hidden = false; expBtn.hidden = true;
+    document.getElementById('e-date').value = todayYmd();
+    document.getElementById('e-amount').focus();
+  });
+  document.getElementById('exp-cancel').addEventListener('click', closeExpForm);
+  expForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    expError.hidden = true;
+    if (!requireLive(expError)) return;
+    var fields = {
+      tenant_id: currentTenantId,
+      expense_date: document.getElementById('e-date').value,
+      category: document.getElementById('e-category').value,
+      amount: parseFloat(document.getElementById('e-amount').value) || 0,
+      job_id: document.getElementById('e-job').value || null,
+      vendor: document.getElementById('e-vendor').value.trim() || null,
+      notes: document.getElementById('e-notes').value.trim() || null
+    };
+    var res = editingExpenseId != null
+      ? await supabaseClient.from('expenses').update(fields).eq('id', editingExpenseId)
+      : await supabaseClient.from('expenses').insert(fields);
+    if (res.error){ expError.textContent = 'Could not save: ' + res.error.message; expError.hidden = false; return; }
+    closeExpForm();
+    render();
+  });
+  document.getElementById('exp-body').addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var x = (currentExpenses||[]).find(function(i){ return String(i.id) === String(btn.dataset.id); });
+    if (!x) return;
+    if (btn.dataset.action === 'exp-edit'){
+      editingExpenseId = x.id;
+      expForm.hidden = false; expBtn.hidden = true;
+      document.getElementById('exp-form-title').textContent = 'Edit Expense';
+      document.getElementById('e-date').value = x.expense_date;
+      document.getElementById('e-category').value = x.category;
+      document.getElementById('e-amount').value = x.amount;
+      renderJobOptions('e-job', 'General overhead');
+      document.getElementById('e-job').value = x.job_id || '';
+      document.getElementById('e-vendor').value = x.vendor || '';
+      document.getElementById('e-notes').value = x.notes || '';
+      expForm.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+    if (btn.dataset.action === 'exp-delete'){
+      if (!confirm('Delete this expense?')) return;
+      var res = await supabaseClient.from('expenses').delete().eq('id', x.id);
+      if (res.error){ alert('Could not delete: ' + res.error.message); return; }
+      render();
+    }
+  });
+
+  // ---- Mileage ----
+  var mileForm = document.getElementById('mile-form');
+  var mileBtn = document.getElementById('mile-add-btn');
+  var mileError = document.getElementById('mile-error');
+  function closeMileForm(){
+    mileForm.hidden = true; mileForm.reset(); mileBtn.hidden = false; mileError.hidden = true;
+  }
+  mileBtn.addEventListener('click', function(){
+    mileForm.hidden = false; mileBtn.hidden = true;
+    document.getElementById('m-date').value = todayYmd();
+    document.getElementById('m-miles').focus();
+  });
+  document.getElementById('mile-cancel').addEventListener('click', closeMileForm);
+  mileForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    mileError.hidden = true;
+    if (!requireLive(mileError)) return;
+    var res = await supabaseClient.from('mileage_logs').insert({
+      tenant_id: currentTenantId,
+      log_date: document.getElementById('m-date').value,
+      miles: parseFloat(document.getElementById('m-miles').value) || 0,
+      job_id: document.getElementById('m-job').value || null,
+      purpose: document.getElementById('m-purpose').value.trim() || null
+    });
+    if (res.error){ mileError.textContent = 'Could not save: ' + res.error.message; mileError.hidden = false; return; }
+    closeMileForm();
+    render();
+  });
+  document.getElementById('mile-body').addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-action="mile-delete"]');
+    if (!btn) return;
+    if (!confirm('Delete this mileage entry?')) return;
+    var res = await supabaseClient.from('mileage_logs').delete().eq('id', btn.dataset.id);
+    if (res.error){ alert('Could not delete: ' + res.error.message); return; }
+    render();
+  });
+
+  // ---- Business dates (compliance) ----
+  var compForm = document.getElementById('comp-form');
+  var compBtn = document.getElementById('comp-add-btn');
+  var compError = document.getElementById('comp-error');
+  function closeCompForm(){
+    compForm.hidden = true; compForm.reset(); compBtn.hidden = false;
+    compError.hidden = true; editingComplianceId = null;
+    document.getElementById('comp-form-title').textContent = 'Add Business Date';
+  }
+  compBtn.addEventListener('click', function(){
+    compForm.hidden = false; compBtn.hidden = true; document.getElementById('cm-name').focus();
+  });
+  document.getElementById('comp-cancel').addEventListener('click', closeCompForm);
+  compForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    compError.hidden = true;
+    if (!requireLive(compError)) return;
+    var intervalRaw = document.getElementById('cm-interval').value;
+    var fields = {
+      tenant_id: currentTenantId,
+      name: document.getElementById('cm-name').value.trim(),
+      due_date: document.getElementById('cm-due').value || null,
+      interval_months: intervalRaw === '' ? null : (parseInt(intervalRaw, 10) || null),
+      notes: document.getElementById('cm-notes').value.trim() || null
+    };
+    var res = editingComplianceId != null
+      ? await supabaseClient.from('compliance_items').update(fields).eq('id', editingComplianceId)
+      : await supabaseClient.from('compliance_items').insert(fields);
+    if (res.error){ compError.textContent = 'Could not save: ' + res.error.message; compError.hidden = false; return; }
+    closeCompForm();
+    render();
+  });
+  document.getElementById('comp-body').addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var item = (currentCompliance||[]).find(function(k){ return String(k.id) === String(btn.dataset.id); });
+    if (!item) return;
+    if (btn.dataset.action === 'comp-edit'){
+      editingComplianceId = item.id;
+      compForm.hidden = false; compBtn.hidden = true;
+      document.getElementById('comp-form-title').textContent = 'Edit ' + item.name;
+      document.getElementById('cm-name').value = item.name;
+      document.getElementById('cm-due').value = item.due_date || '';
+      document.getElementById('cm-interval').value = item.interval_months != null ? item.interval_months : '';
+      document.getElementById('cm-notes').value = item.notes || '';
+      compForm.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+    if (btn.dataset.action === 'comp-renew'){
+      // Roll the due date forward by one renewal cycle from whichever is later:
+      // the old due date, or today (so a long-overdue item lands in the future).
+      var base = item.due_date && item.due_date > todayYmd() ? item.due_date : todayYmd();
+      var next = addMonths(base, item.interval_months);
+      if (!confirm('Mark "' + item.name + '" renewed? Next due date becomes ' + fmtDateSmart(next) + '.')) return;
+      var res = await supabaseClient.from('compliance_items').update({due_date: next}).eq('id', item.id);
+      if (res.error){ alert('Could not update: ' + res.error.message); return; }
+      render();
+    }
+    if (btn.dataset.action === 'comp-delete'){
+      if (!confirm('Delete "' + item.name + '"?')) return;
+      var delRes = await supabaseClient.from('compliance_items').delete().eq('id', item.id);
+      if (delRes.error){ alert('Could not delete: ' + delRes.error.message); return; }
+      render();
+    }
+  });
+
+  // ---- P&L period picker ----
+  document.getElementById('pnl-period').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-period]');
+    if (!btn) return;
+    pnlPeriod = btn.dataset.period;
+    this.querySelectorAll('button').forEach(function(b){ b.classList.toggle('active', b === btn); });
+    renderPnL();
+    renderFinancialsKPIs(computeFinancials(currentJobs));
+  });
+
+  // ---- Exports ----
+  document.querySelectorAll('[data-export]').forEach(function(btn){
+    btn.addEventListener('click', function(){ exportData(btn.dataset.export); });
+  });
+
+  // ---- Gallery filter ----
+  document.getElementById('gal-service').addEventListener('change', function(){
+    galleryService = this.value;
+    renderGallery();
+  });
+
+  // ---- Today's route ----
+  document.getElementById('route-copy-btn').addEventListener('click', function(){
+    copyText(buildRouteMessage(), this, 'Copied!');
+  });
+  document.getElementById('route-list').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="route-open"]');
+    if (!btn) return;
+    var job = currentJobs.find(function(j){ return String(j.id) === String(btn.dataset.id); });
+    if (job) goToJobInHome(job);
+  });
+
+  // ---- Review requests (works from the jobs table and from Home alerts) ----
+  async function handleReviewCopy(jobId, btn){
+    var job = currentJobs.find(function(j){ return String(j.id) === String(jobId); });
+    if (!job) return;
+    await copyText(buildReviewMessage(job), btn, 'Copied!');
+    if (isLive && !job.review_requested_at){
+      await supabaseClient.from('jobs').update({review_requested_at: todayYmd()}).eq('id', job.id);
+      job.review_requested_at = todayYmd();
+      renderAlerts();
+    }
+  }
+
+  // ---- Home alerts + aging tables share these actions ----
+  function wireSharedActions(container){
+    container.addEventListener('click', function(e){
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.dataset.action;
+      if (action === 'view-invoice') openInvoice(btn.dataset.id);
+      if (action === 'review-copy') handleReviewCopy(btn.dataset.id, btn);
+      if (action === 'alert-customers') switchTab('customers');
+      if (action === 'alert-invoices') switchTab('invoices');
+    });
+  }
+  wireSharedActions(document.getElementById('alert-list'));
+  wireSharedActions(document.getElementById('aging-body'));
 
   checkAuthAndRender();
 })();
