@@ -1,3 +1,4 @@
+<meta charset="UTF-8">
 <title>CK Pressure Washing</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -362,13 +363,13 @@
   .invoice-total-row{ display:flex; justify-content:flex-end; gap:24px; padding-top:8px; font-size:13.5px; color:#4C5A63; }
   .invoice-total-row.grand{ font-size:16px; font-weight:700; color:#12181D; border-top:1px solid #E4E8EB; padding-top:8px; margin-top:2px; }
   .invoice-status-row{ display:flex; justify-content:flex-end; gap:24px; padding-top:10px; font-size:12.5px; color:#4C5A63; align-items:center; }
-  .invoice-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:28px; }
+  .invoice-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:28px; flex-wrap:wrap; }
   .invoice-photos{ margin-top:26px; }
   .invoice-photos .label{ font-size:11px; text-transform:uppercase; color:#84939B; letter-spacing:.05em; margin-bottom:8px; }
-  .invoice-photo-grid{ display:flex; gap:14px; flex-wrap:wrap; }
-  .invoice-photo-grid figure{ margin:0; text-align:center; }
-  .invoice-photo-grid img{ width:140px; height:100px; object-fit:cover; border-radius:6px; border:1px solid #E4E8EB; display:block; }
-  .invoice-photo-grid figcaption{ font-size:11px; color:#84939B; margin-top:4px; text-transform:capitalize; }
+  .invoice-photo-grid{ display:flex; gap:16px; flex-wrap:wrap; }
+  .invoice-photo-grid figure{ margin:0; text-align:center; flex:1 1 260px; max-width:340px; }
+  .invoice-photo-grid img{ width:100%; height:240px; object-fit:cover; border-radius:8px; border:1px solid #E4E8EB; display:block; }
+  .invoice-photo-grid figcaption{ font-size:12px; color:#84939B; margin-top:6px; text-transform:capitalize; }
 
   @media print{
     body *{ visibility:hidden; }
@@ -2755,11 +2756,52 @@
       '<div class="invoice-actions no-print">' +
         '<button type="button" class="btn-cancel" id="invoice-close">Close</button>' +
         '<button type="button" class="btn-save" id="invoice-print">Print</button>' +
+        '<button type="button" class="btn-save" id="invoice-email">Email</button>' +
       '</div>';
 
     document.getElementById('invoice-overlay').hidden = false;
     document.getElementById('invoice-close').addEventListener('click', closeInvoice);
     document.getElementById('invoice-print').addEventListener('click', function(){ window.print(); });
+    document.getElementById('invoice-email').addEventListener('click', function(){
+      emailInvoice(job, isEstimate, totals, bizName);
+    });
+  }
+
+  // Opens the customer's email client with the invoice/estimate summary filled
+  // in. There's no server here to attach a PDF automatically, so the flow is:
+  // Print > Save as PDF, then Email > attach that PDF in the message that opens.
+  function emailInvoice(job, isEstimate, totals, bizName){
+    var customer = customerForJob(job);
+    var toEmail = (customer && customer.email) ? customer.email.trim() : '';
+    var docWord = isEstimate ? 'estimate' : 'invoice';
+    var subject = (isEstimate ? 'Estimate' : 'Invoice') + ' #' + job.id + ' from ' + bizName;
+    var bodyLines = [
+      'Hi ' + (job.client_name || 'there') + ',',
+      '',
+      'Here is your ' + docWord + ' from ' + bizName + ' for the ' + (job.service_type || 'service') +
+        ' at ' + job.address + '.',
+      '',
+      'Total: ' + fmtMoney(totals.total)
+    ];
+    if (!isEstimate && jobBalanceDue(job) > 0){
+      bodyLines.push('Balance due: ' + fmtMoney2(jobBalanceDue(job)));
+    }
+    bodyLines.push(
+      '',
+      'A printable PDF isn\'t attached automatically — use the Print button on ' +
+        'this ' + docWord + ' and choose "Save as PDF" if you haven\'t already, ' +
+        'then attach that file to this email before sending.',
+      '',
+      'Thanks!',
+      bizName
+    );
+    if (!toEmail){
+      window.alert("This customer doesn't have an email on file yet — add one on the Customers tab, or just type an address into the To field that's about to open.");
+    }
+    var mailto = 'mailto:' + toEmail +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(bodyLines.join('\n'));
+    window.location.href = mailto;
   }
   function closeInvoice(){ document.getElementById('invoice-overlay').hidden = true; }
 
