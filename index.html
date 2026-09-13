@@ -887,23 +887,22 @@
   <div id="invoice-sheet" class="invoice-sheet"></div>
 </div>
 
-<!-- Deployment settings live in config.js so this file never needs editing.
-     Set it up once; every future version of the dashboard drops straight in.
-     If config.js is missing, the page just runs in demo mode. -->
-<script src="config.js"></script>
+<!-- Your Supabase project URL and publishable key are baked directly into this
+     file below — there's no separate config.js to keep in sync anymore. This
+     key is meant to sit in a public page (Row Level Security in the database
+     is what actually protects your data), so it's safe to commit and deploy
+     as-is. To point this same file at a different Supabase project or tenant,
+     edit the four settings right below. -->
 
 <script>
 (function(){
-  // ---- Settings, from config.js (see that file to set them) ----
-  // Falls back to the literals below if config.js isn't present, so an older
-  // copy with the values pasted in directly still works.
-  var CFG = window.CK_CONFIG || {};
-  var SUPABASE_URL = CFG.supabaseUrl || 'YOUR_SUPABASE_URL';
-  var SUPABASE_ANON_KEY = CFG.supabaseKey || 'YOUR_SUPABASE_ANON_KEY';
-  var PHOTO_BUCKET = CFG.photoBucket || 'job-photos';
+  // ---- Settings ----
+  var SUPABASE_URL = 'https://uanghzuketepjencbebw.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_kx-z6hgtOSgXEl6wzBm3kg_NJqfnZQI';
+  var PHOTO_BUCKET = 'job-photos';
   // This is the tenant row (see the "tenants" table) this deployed page belongs to.
   // Every read/write this page makes is scoped to this tenant once someone signs in.
-  var TENANT_SLUG = CFG.tenantSlug || 'ck-pressure-washing';
+  var TENANT_SLUG = 'ck-pressure-washing';
   // Bumped by hand each time this file changes — a quick way to confirm which
   // version is actually live after a deploy, from the footer of the page.
   var DASHBOARD_VERSION = 'build 2026-09-13';
@@ -2078,7 +2077,7 @@
       badge.textContent = 'Demo';
       badge.title = supabaseClient
         ? 'Showing sample data — could not load your data from Supabase.'
-        : 'Showing sample data — add your Project URL and key to config.js to go live.';
+        : 'Showing sample data — add your Supabase Project URL and key near the top of this file to go live.';
       badge.classList.remove('is-live');
     }
   }
@@ -3220,4 +3219,18 @@
       var action = btn.dataset.action;
       if (action === 'view-invoice') openInvoice(btn.dataset.id);
       if (action === 'review-copy') handleReviewCopy(btn.dataset.id, btn);
-      if (action === 'alert-customers') switchTab
+      if (action === 'alert-customers') switchTab('customers');
+      if (action === 'alert-invoices') switchTab('invoices');
+    });
+  }
+  wireSharedActions(document.getElementById('alert-list'));
+  wireSharedActions(document.getElementById('aging-body'));
+
+  var buildTagEl = document.getElementById('build-tag');
+  if (buildTagEl){
+    buildTagEl.textContent = DASHBOARD_VERSION + ' · ' + (supabaseClient ? 'Supabase configured' : 'no Supabase credentials found');
+  }
+
+  checkAuthAndRender();
+})();
+</script>
