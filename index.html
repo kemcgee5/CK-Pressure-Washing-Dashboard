@@ -880,7 +880,7 @@
     </div>
   </section>
 
-  <footer class="note">CK Pressure Washing LLC — internal tool. Not for external distribution.</footer>
+  <footer class="note">CK Pressure Washing LLC — internal tool. Not for external distribution.<br><span id="build-tag" style="font-family:'IBM Plex Mono',monospace; font-size:10.5px;"></span></footer>
 </div>
 
 <div id="invoice-overlay" class="invoice-overlay" hidden>
@@ -898,12 +898,15 @@
   // Falls back to the literals below if config.js isn't present, so an older
   // copy with the values pasted in directly still works.
   var CFG = window.CK_CONFIG || {};
-  var SUPABASE_URL = CFG.supabaseUrl || 'https://uanghzuketepjencbebw.supabase.co';
-  var SUPABASE_ANON_KEY = CFG.supabaseKey || 'sb_publishable_kx-z6hgtOSgXEl6wzBm3kg_NJqfnZQI';
+  var SUPABASE_URL = CFG.supabaseUrl || 'YOUR_SUPABASE_URL';
+  var SUPABASE_ANON_KEY = CFG.supabaseKey || 'YOUR_SUPABASE_ANON_KEY';
   var PHOTO_BUCKET = CFG.photoBucket || 'job-photos';
   // This is the tenant row (see the "tenants" table) this deployed page belongs to.
   // Every read/write this page makes is scoped to this tenant once someone signs in.
   var TENANT_SLUG = CFG.tenantSlug || 'ck-pressure-washing';
+  // Bumped by hand each time this file changes — a quick way to confirm which
+  // version is actually live after a deploy, from the footer of the page.
+  var DASHBOARD_VERSION = 'build 2026-09-13';
 
   var supabaseClient = null;
   if (SUPABASE_URL.indexOf('YOUR_') !== 0 && window.supabase) {
@@ -3217,13 +3220,4 @@
       var action = btn.dataset.action;
       if (action === 'view-invoice') openInvoice(btn.dataset.id);
       if (action === 'review-copy') handleReviewCopy(btn.dataset.id, btn);
-      if (action === 'alert-customers') switchTab('customers');
-      if (action === 'alert-invoices') switchTab('invoices');
-    });
-  }
-  wireSharedActions(document.getElementById('alert-list'));
-  wireSharedActions(document.getElementById('aging-body'));
-
-  checkAuthAndRender();
-})();
-</script>
+      if (action === 'alert-customers') switchTab
