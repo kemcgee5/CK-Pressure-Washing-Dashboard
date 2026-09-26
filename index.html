@@ -1036,7 +1036,8 @@
     {id:'d3', customer_id:'c3', client_name:"Priya Achar", address:"77 Stonewood Creek Dr", service_type:"Deck / Patio", price:180, job_date:todayYmd(), status:"scheduled", tax_rate:0, assigned_worker_id:'w1', start_time:"09:00", duration_minutes:120, labor_hours:2, photos:[], line_items:[{description:"Deck & patio wash", quantity:1, unit_price:180}]},
     {id:'d6', customer_id:'c5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"Driveway", price:240, job_date:todayYmd(), status:"scheduled", tax_rate:0, assigned_worker_id:'w2', start_time:"13:30", duration_minutes:90, labor_hours:1.5, photos:[], line_items:[{description:"Driveway & walkway wash", quantity:1, unit_price:240}]},
     {id:'d4', customer_id:'c4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"Roof", price:650, job_date:dayOffset(-3), status:"quoted", tax_rate:0, assigned_worker_id:null, photos:[], line_items:[{description:"Roof soft wash", quantity:1, unit_price:650}]},
-    {id:'d5', customer_id:'c5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"Fence", price:310, job_date:dayOffset(+4), status:"scheduled", tax_rate:0, assigned_worker_id:'w2', start_time:"10:00", duration_minutes:150, labor_hours:2.5, photos:[], line_items:[{description:"Fence wash", quantity:1, unit_price:310}]}
+    {id:'d5', customer_id:'c5', client_name:"Alicia Ford", address:"41 Stonewood Creek Dr", service_type:"Fence", price:310, job_date:dayOffset(+4), status:"scheduled", tax_rate:0, assigned_worker_id:'w2', start_time:"10:00", duration_minutes:150, labor_hours:2.5, photos:[], line_items:[{description:"Fence wash", quantity:1, unit_price:310}]},
+    {id:'d15', customer_id:'c4', client_name:"Tom Riggins", address:"3 Hollow Bend Way", service_type:"House Wash", price:410, job_date:dayOffset(-1), status:"scheduled", tax_rate:0, assigned_worker_id:null, client_response:"accepted", client_responded_at:dayOffset(-1), photos:[], line_items:[{description:"House wash", quantity:1, unit_price:410}]}
   ];
   var DEMO_EXPENSES = [
     {id:'e1', job_id:'d1', expense_date:dayOffset(-11), category:"Chemicals", vendor:"Southeast Softwash", amount:34.50, notes:"SH + surfactant"},
@@ -1752,6 +1753,18 @@
         sub: 'Last done ' + fmtDateSmart(r.stats.lastService) + (r.customer.phone ? ' · ' + esc(r.customer.phone) : ''),
         action: '<button class="icon-btn" type="button" data-action="alert-customers">Customers</button>',
         sort: 500 + Math.min(r.stats.dueDays, 400)
+      });
+    });
+
+    (currentJobs||[]).forEach(function(j){
+      if (j.client_response !== 'accepted') return;
+      if (j.assigned_worker_id && j.start_time) return; // already put on the calendar
+      items.push({
+        cls: 'warn',
+        text: esc(j.client_name) + ' accepted their estimate — add to the schedule',
+        sub: esc(j.address) + (j.client_responded_at ? ' · accepted ' + fmtDateSmart(String(j.client_responded_at).slice(0,10)) : ''),
+        action: '<button class="icon-btn" type="button" data-action="schedule-job" data-id="'+j.id+'">Schedule</button>',
+        sort: 900
       });
     });
 
@@ -3461,6 +3474,10 @@
       if (action === 'review-copy') handleReviewCopy(btn.dataset.id, btn);
       if (action === 'alert-customers') switchTab('customers');
       if (action === 'alert-invoices') switchTab('invoices');
+      if (action === 'schedule-job'){
+        var job = currentJobs.find(function(jj){ return String(jj.id) === String(btn.dataset.id); });
+        if (job) goToJobInHome(job);
+      }
     });
   }
   wireSharedActions(document.getElementById('alert-list'));
