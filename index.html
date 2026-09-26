@@ -612,6 +612,18 @@
         </div>
         <p id="cust-error" class="form-error" hidden></p>
       </form>
+      <div class="gallery-filters">
+        <label for="cust-search" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Search</label>
+        <input id="cust-search" type="text" placeholder="Name, address, phone, email, notes…" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface-2);color:var(--ink);flex:1;min-width:200px;max-width:360px;">
+        <label for="cust-status-filter" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Status</label>
+        <select id="cust-status-filter" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface-2);color:var(--ink);">
+          <option value="">All customers</option>
+          <option value="due">Due now</option>
+          <option value="soon">Due soon</option>
+          <option value="ok">Up to date</option>
+          <option value="none">No service yet</option>
+        </select>
+      </div>
       <div class="table-scroll">
         <table class="mini" id="cust-table">
           <thead><tr><th>Customer</th><th class="num">Jobs</th><th class="num">Lifetime Value</th><th>Last Service</th><th>Next Due</th><th></th></tr></thead>
@@ -691,6 +703,19 @@
         <div class="card-actions">
           <span id="winrate-note" class="card-sub" style="margin:0;"></span>
         </div>
+      </div>
+      <div class="gallery-filters">
+        <label for="invoice-search" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Search</label>
+        <input id="invoice-search" type="text" placeholder="Client, address, doc #…" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface-2);color:var(--ink);flex:1;min-width:200px;max-width:360px;">
+        <label for="invoice-status-filter" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Status</label>
+        <select id="invoice-status-filter" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:6px 9px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface-2);color:var(--ink);">
+          <option value="">All statuses</option>
+          <option value="quoted">Quoted</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="completed">Completed</option>
+          <option value="paid">Paid</option>
+          <option value="declined">Declined</option>
+        </select>
       </div>
       <table id="invoices-table">
         <thead><tr><th>Doc</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
@@ -965,6 +990,10 @@
   var galleryService = '';
   var leadSearchQuery = '';
   var leadStatusFilter = '';
+  var invoiceSearchQuery = '';
+  var invoiceStatusFilter = '';
+  var custSearchQuery = '';
+  var custStatusFilter = '';
   var calCursor = new Date(); calCursor.setDate(1); // first-of-month cursor for the calendar view
 
   var STATUS_LABEL = { quoted:"Quoted", scheduled:"Scheduled", completed:"Completed", paid:"Paid", declined:"Declined" };
@@ -1470,15 +1499,29 @@
 
   function renderCustomers(){
     var el = document.getElementById('cust-body');
-    var list = (currentCustomers||[]).slice().sort(function(a,b){
-      return customerStats(b).lifetime - customerStats(a).lifetime;
-    });
-    if (!list.length){
+    if (!(currentCustomers||[]).length){
       el.innerHTML = '<tr><td colspan="6" class="empty-note">No customers yet. They\'re created automatically when you save a job, or add one above.</td></tr>';
       return;
     }
-    el.innerHTML = list.map(function(c){
-      var s = customerStats(c);
+    var q = custSearchQuery.trim().toLowerCase();
+    var withStats = (currentCustomers||[]).map(function(c){ return { c: c, s: customerStats(c) }; });
+    var filtered = withStats.filter(function(r){
+      var c = r.c, s = r.s;
+      var dueKey = !s.lastService ? 'none' : (s.isDue ? 'due' : (s.isSoon ? 'soon' : 'ok'));
+      if (custStatusFilter && dueKey !== custStatusFilter) return false;
+      if (!q) return true;
+      return [c.name, c.address, c.phone, c.email, c.notes]
+        .filter(Boolean).join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    var list = filtered.sort(function(a,b){ return b.s.lifetime - a.s.lifetime; });
+    if (!list.length){
+      var msg = q ? 'No customers match "'+esc(custSearchQuery.trim())+'"' + (custStatusFilter ? ' with that status' : '') + '.'
+                  : 'No customers with that status.';
+      el.innerHTML = '<tr><td colspan="6" class="empty-note">'+msg+'</td></tr>';
+      return;
+    }
+    el.innerHTML = list.map(function(r){
+      var c = r.c, s = r.s;
       var contact = [c.phone, c.email].filter(Boolean).join(' · ');
       var duePill;
       if (!s.lastService) duePill = '<span class="due-pill none">No service yet</span>';
@@ -1891,18 +1934,32 @@
 
   function renderInvoices(jobs){
     var el = document.getElementById('invoices-body');
-    var sorted = jobs.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
-    el.innerHTML = sorted.map(function(j){
-      var isQuote = j.status === 'quoted' || j.status === 'declined';
-      var label = isQuote ? 'Estimate' : 'Invoice';
-      return '<tr><td>'+label+' #'+j.id+'</td>' +
-        '<td><b>'+esc(j.client_name)+'</b><div class="addr-sub">'+esc(j.address)+'</div></td>' +
-        '<td class="date">'+fmtDate(j.job_date)+'</td>' +
-        '<td class="money">'+fmtMoney(invoiceTotal(j))+'</td>' +
-        '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
-        '<td><button class="btn-add small" type="button" data-action="view-invoice" data-id="'+j.id+'">View</button></td></tr>';
-    }).join('');
+    var q = invoiceSearchQuery.trim().toLowerCase();
+    var visible = jobs.filter(function(j){
+      if (invoiceStatusFilter && j.status !== invoiceStatusFilter) return false;
+      if (!q) return true;
+      return [j.client_name, j.address, j.service_type, 'invoice #'+j.id, 'estimate #'+j.id]
+        .filter(Boolean).join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    var sorted = visible.slice().sort(function(a,b){ return new Date(b.job_date) - new Date(a.job_date); });
+    if (!sorted.length){
+      var msg = q ? 'No invoices match "'+esc(invoiceSearchQuery.trim())+'"' + (invoiceStatusFilter ? ' with that status' : '') + '.'
+                  : 'No invoices with that status.';
+      el.innerHTML = '<tr><td colspan="6" class="empty-note">'+msg+'</td></tr>';
+    } else {
+      el.innerHTML = sorted.map(function(j){
+        var isQuote = j.status === 'quoted' || j.status === 'declined';
+        var label = isQuote ? 'Estimate' : 'Invoice';
+        return '<tr><td>'+label+' #'+j.id+'</td>' +
+          '<td><b>'+esc(j.client_name)+'</b><div class="addr-sub">'+esc(j.address)+'</div></td>' +
+          '<td class="date">'+fmtDate(j.job_date)+'</td>' +
+          '<td class="money">'+fmtMoney(invoiceTotal(j))+'</td>' +
+          '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
+          '<td><button class="btn-add small" type="button" data-action="view-invoice" data-id="'+j.id+'">View</button></td></tr>';
+      }).join('');
+    }
 
+    // Win rate always reflects every job, not just what the search/filter is showing.
     var wr = computeWinRate(jobs);
     var note = document.getElementById('winrate-note');
     if (wr.rate == null) note.textContent = wr.pending ? wr.pending + ' quote(s) still open' : '';
@@ -3439,6 +3496,26 @@
   document.getElementById('lead-status-filter').addEventListener('change', function(){
     leadStatusFilter = this.value;
     renderLeads(currentLeads);
+  });
+
+  // ---- Invoice search & status filter ----
+  document.getElementById('invoice-search').addEventListener('input', function(){
+    invoiceSearchQuery = this.value;
+    renderInvoices(currentJobs);
+  });
+  document.getElementById('invoice-status-filter').addEventListener('change', function(){
+    invoiceStatusFilter = this.value;
+    renderInvoices(currentJobs);
+  });
+
+  // ---- Customer search & status filter ----
+  document.getElementById('cust-search').addEventListener('input', function(){
+    custSearchQuery = this.value;
+    renderCustomers();
+  });
+  document.getElementById('cust-status-filter').addEventListener('change', function(){
+    custStatusFilter = this.value;
+    renderCustomers();
   });
 
   // ---- Today's route ----
