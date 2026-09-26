@@ -371,6 +371,21 @@
   .invoice-photo-grid img{ width:100%; height:240px; object-fit:cover; border-radius:8px; border:1px solid #E4E8EB; display:block; }
   .invoice-photo-grid figcaption{ font-size:12px; color:#84939B; margin-top:6px; text-transform:capitalize; }
 
+  /* ---- Public estimate page (no login — reached via the link in the client email) ---- */
+  .public-estimate-page{ min-height:100vh; padding:40px 20px; display:flex; justify-content:center; background:var(--page); }
+  .public-estimate-page .invoice-sheet{ height:fit-content; }
+  .btn-accept{ font-family:"IBM Plex Sans", sans-serif; font-size:14px; font-weight:700;
+    background:var(--good); color:#fff; border:none; border-radius:7px; padding:10px 20px; cursor:pointer; }
+  .btn-accept:disabled{ opacity:.6; cursor:default; }
+  .btn-decline{ font-family:"IBM Plex Sans", sans-serif; font-size:14px; font-weight:700;
+    background:transparent; color:var(--critical); border:1px solid var(--critical); border-radius:7px; padding:10px 20px; cursor:pointer; }
+  .btn-decline:disabled{ opacity:.6; cursor:default; }
+  .estimate-response-banner{ margin-top:28px; padding:14px 16px; border-radius:8px; font-size:13.5px; }
+  .estimate-response-banner.accepted{ background:var(--good-soft); color:var(--good); }
+  .estimate-response-banner.declined{ background:var(--critical-soft); color:var(--critical); }
+  .estimate-response-banner.neutral{ background:var(--surface-2); color:var(--ink-2); border:1px solid var(--line); }
+  .estimate-error{ max-width:480px; margin:80px auto; text-align:center; font-size:14px; color:var(--ink-2); }
+
   @media print{
     body *{ visibility:hidden; }
     .invoice-sheet, .invoice-sheet *{ visibility:visible; }
@@ -899,6 +914,12 @@
 
 <div id="invoice-overlay" class="invoice-overlay" hidden>
   <div id="invoice-sheet" class="invoice-sheet"></div>
+</div>
+
+<!-- Reached via ?estimate=<token> in the URL, with no login — this is what
+     the "view online" link in the client email opens. -->
+<div id="public-estimate-view" class="public-estimate-page" hidden>
+  <div id="public-estimate-sheet" class="invoice-sheet"></div>
 </div>
 
 <!-- Your Supabase project URL and publishable key are baked directly into this
@@ -2769,11 +2790,17 @@
         ? '<div class="invoice-status-row"><span><b>Balance Due</b></span><span><b>'+fmtMoney2(jobBalanceDue(job))+'</b></span></div>'
         : '') +
       '<div class="invoice-status-row"><span>Status</span><span class="chip '+job.status+'">'+STATUS_LABEL[job.status]+'</span></div>' +
+      (job.client_response
+        ? '<div class="invoice-status-row"><span>Client Response</span><span><b>'+(job.client_response === 'accepted' ? 'Accepted' : 'Declined')+'</b>'+(job.client_responded_at ? ' ('+fmtDate(String(job.client_responded_at).slice(0,10))+')' : '')+'</span></div>'
+        : '') +
       photosHtml +
       '<div class="invoice-actions no-print">' +
         '<button type="button" class="btn-cancel" id="invoice-close">Close</button>' +
         '<button type="button" class="btn-save" id="invoice-print">Print</button>' +
         '<button type="button" class="btn-save" id="invoice-email">Email</button>' +
+        (job.status === 'quoted' && job.public_token
+          ? '<button type="button" class="btn-save" id="invoice-copy-link">Copy Link</button>'
+          : '') +
       '</div>';
 
     document.getElementById('invoice-overlay').hidden = false;
@@ -2782,6 +2809,32 @@
     document.getElementById('invoice-email').addEventListener('click', function(){
       emailInvoice(job, isEstimate, totals, bizName);
     });
+    var copyBtn = document.getElementById('invoice-copy-link');
+    if (copyBtn){
+      copyBtn.addEventListener('click', function(){ copyEstimateLink(job, copyBtn); });
+    }
+  }
+
+  // Builds the no-login link a client can open to view (and accept/decline)
+  // this specific estimate. Works whether the page is served at a bare
+  // domain or with index.html in the URL.
+  function publicEstimateUrl(job){
+    if (!job.public_token) return '';
+    return window.location.origin + window.location.pathname + '?estimate=' + job.public_token;
+  }
+
+  function copyEstimateLink(job, btn){
+    var url = publicEstimateUrl(job);
+    var done = function(){
+      var original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function(){ btn.textContent = original; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(done).catch(function(){ window.prompt('Copy this link:', url); });
+    } else {
+      window.prompt('Copy this link:', url);
+    }
   }
 
   // Opens the customer's email client with the invoice/estimate summary filled
@@ -2803,6 +2856,13 @@
     if (!isEstimate && jobBalanceDue(job) > 0){
       bodyLines.push('Balance due: ' + fmtMoney2(jobBalanceDue(job)));
     }
+    if (job.status === 'quoted' && job.public_token){
+      bodyLines.push(
+        '',
+        'You can review this estimate and accept or decline it right online — no login needed:',
+        publicEstimateUrl(job)
+      );
+    }
     bodyLines.push(
       '',
       'A printable PDF isn\'t attached automatically — use the Print button on ' +
@@ -2821,6 +2881,106 @@
     window.location.href = mailto;
   }
   function closeInvoice(){ document.getElementById('invoice-overlay').hidden = true; }
+
+  // ---- Public estimate page: no login, reached via ?estimate=<token> ----
+  // Everything here talks to the database only through the two narrow
+  // get_estimate_by_token / respond_to_estimate functions (see
+  // round-7-client-response.sql) — never the jobs table directly — so the
+  // publishable key baked into this page still can't be used to browse or
+  // change anything except the one estimate the visitor already has a link to.
+  async function initPublicEstimateView(token){
+    var sheet = document.getElementById('public-estimate-sheet');
+    if (!supabaseClient){
+      sheet.outerHTML = '<div class="estimate-error">This page isn\'t connected to a database right now, so this link can\'t be opened. Please contact us directly.</div>';
+      return;
+    }
+    sheet.innerHTML = '<p class="form-hint" style="margin:0;">Loading your estimate…</p>';
+    var res = await supabaseClient.rpc('get_estimate_by_token', { p_token: token });
+    if (res.error || !res.data){
+      document.getElementById('public-estimate-view').innerHTML =
+        '<div class="estimate-error">This estimate link isn\'t valid, or may have expired. Please contact us directly if you need a new one.</div>';
+      return;
+    }
+    renderPublicEstimate(token, res.data);
+  }
+
+  function renderPublicEstimate(token, job){
+    var totals = computeInvoiceTotals(job);
+    var profile = job.profile || {};
+    var bizName = profile.business_name || 'Us';
+    var logoHtml = profile.logo_path ? '<img src="'+profile.logo_path+'" alt="">' : '';
+    var metaLines = [profile.phone, profile.email, profile.address].filter(Boolean).join(' &middot; ');
+    var linesHtml = totals.items.map(function(li){
+      var amt = Number(li.quantity) * Number(li.unit_price);
+      return '<tr><td>'+esc(li.description)+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoney(li.unit_price)+'</td><td class="num">'+fmtMoney(amt)+'</td></tr>';
+    }).join('');
+    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Tax ('+totals.taxRate+'%)</span><span>'+fmtMoney(totals.taxAmt)+'</span></div>') : '';
+    var photos = job.photos || [];
+    var photosHtml = photos.length ? (
+      '<div class="invoice-photos"><div class="label">Job Photos</div><div class="invoice-photo-grid">' +
+        photos.map(function(p){
+          return '<figure><img src="'+p.photo_url+'" alt="'+esc(p.kind)+' photo"><figcaption>'+esc(p.kind)+'</figcaption></figure>';
+        }).join('') +
+      '</div></div>'
+    ) : '';
+
+    var actionOrBanner;
+    if (job.status === 'quoted' && !job.client_response){
+      actionOrBanner = '<div class="invoice-actions no-print">' +
+          '<button type="button" class="btn-decline" id="estimate-decline">Decline</button>' +
+          '<button type="button" class="btn-accept" id="estimate-accept">Accept Estimate</button>' +
+        '</div>';
+    } else if (job.client_response === 'accepted'){
+      actionOrBanner = '<div class="estimate-response-banner accepted">You accepted this estimate' +
+        (job.client_responded_at ? ' on '+fmtDate(String(job.client_responded_at).slice(0,10)) : '') +
+        '. We\'ll be in touch to get it scheduled!</div>';
+    } else if (job.client_response === 'declined'){
+      actionOrBanner = '<div class="estimate-response-banner declined">You declined this estimate' +
+        (job.client_responded_at ? ' on '+fmtDate(String(job.client_responded_at).slice(0,10)) : '') +
+        '. If you change your mind, just give us a call.</div>';
+    } else {
+      actionOrBanner = '<div class="estimate-response-banner neutral">This estimate has already been handled — please contact us if you have any questions.</div>';
+    }
+
+    document.getElementById('public-estimate-sheet').innerHTML =
+      '<div class="invoice-head">' +
+        '<div class="invoice-brand">'+logoHtml+'<div class="biz-name">'+esc(bizName)+'</div><div class="biz-meta">'+metaLines+'</div></div>' +
+        '<div class="invoice-title"><h3>ESTIMATE</h3><div class="inv-meta">#'+job.id+'<br>'+fmtDate(job.job_date)+'</div></div>' +
+      '</div>' +
+      '<div class="invoice-billto"><div class="label">Prepared For</div><div><b>'+esc(job.client_name)+'</b><br>'+esc(job.address)+'</div></div>' +
+      '<table class="invoice-lines"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>'+linesHtml+'</tbody></table>' +
+      '<div class="invoice-totals">' +
+        '<div class="invoice-total-row"><span>Subtotal</span><span>'+fmtMoney(totals.subtotal)+'</span></div>' +
+        taxRowHtml +
+        '<div class="invoice-total-row grand"><span>Total</span><span>'+fmtMoney(totals.total)+'</span></div>' +
+      '</div>' +
+      photosHtml +
+      actionOrBanner;
+
+    var acceptBtn = document.getElementById('estimate-accept');
+    var declineBtn = document.getElementById('estimate-decline');
+    if (acceptBtn){
+      acceptBtn.addEventListener('click', function(){ respondToEstimate(token, 'accepted', acceptBtn, declineBtn); });
+    }
+    if (declineBtn){
+      declineBtn.addEventListener('click', function(){ respondToEstimate(token, 'declined', acceptBtn, declineBtn); });
+    }
+  }
+
+  async function respondToEstimate(token, response, acceptBtn, declineBtn){
+    var verb = response === 'accepted' ? 'accept' : 'decline';
+    if (!window.confirm('Are you sure you want to ' + verb + ' this estimate?')) return;
+    acceptBtn.disabled = true; declineBtn.disabled = true;
+    var res = await supabaseClient.rpc('respond_to_estimate', { p_token: token, p_response: response });
+    if (res.error){
+      window.alert(res.error.message || 'Something went wrong recording your response — please try again or contact us directly.');
+      acceptBtn.disabled = false; declineBtn.disabled = false;
+      return;
+    }
+    // Re-fetch so the page reflects exactly what's now stored (status, timestamp).
+    var fresh = await supabaseClient.rpc('get_estimate_by_token', { p_token: token });
+    if (fresh.data) renderPublicEstimate(token, fresh.data);
+  }
 
   document.getElementById('invoice-overlay').addEventListener('click', function(e){
     if (e.target.id === 'invoice-overlay') closeInvoice();
@@ -3311,6 +3471,15 @@
     buildTagEl.textContent = DASHBOARD_VERSION + ' · ' + (supabaseClient ? 'Supabase configured' : 'no Supabase credentials found');
   }
 
-  checkAuthAndRender();
+  // A link with ?estimate=<token> in the URL (the one the Email button and
+  // Copy Link generate) skips login entirely and shows just that estimate.
+  var estimateToken = new URLSearchParams(window.location.search).get('estimate');
+  if (estimateToken){
+    document.getElementById('dashboard-content').hidden = true;
+    document.getElementById('public-estimate-view').hidden = false;
+    initPublicEstimateView(estimateToken);
+  } else {
+    checkAuthAndRender();
+  }
 })();
 </script>
