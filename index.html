@@ -119,8 +119,9 @@
 
   .line-items{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
   .line-item-row{ display:grid; grid-template-columns:1fr 64px 84px 78px 26px; gap:8px; align-items:center; }
-  .line-item-row input{ font-family:"IBM Plex Sans", sans-serif; font-size:13px; padding:6px 8px;
+  .line-item-row input, .line-item-row select{ font-family:"IBM Plex Sans", sans-serif; font-size:13px; padding:6px 8px;
     border:1px solid var(--line-strong); border-radius:6px; background:var(--surface-2); color:var(--ink); width:100%; }
+  .li-desc-wrap{ display:flex; flex-direction:column; gap:4px; }
   .li-amount{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; text-align:right; color:var(--ink-2); white-space:nowrap; }
   .li-remove{ background:transparent; border:1px solid var(--line-strong); border-radius:6px; color:var(--critical);
     cursor:pointer; font-size:14px; line-height:1; padding:5px 0; }
@@ -2398,6 +2399,8 @@
   });
 
   // ---- Line item editor (pricing breakdown) ----
+  var LINE_ITEM_PRESETS = ["Driveway", "Walkway", "House Wash", "Deck / Patio", "Fence",
+    "Roof", "Gutter Brightening", "Siding", "Sidewalk / Concrete", "Pool Deck"];
   function updateLineItemsTotal(){
     var rows = document.querySelectorAll('#line-items .line-item-row');
     var subtotal = 0;
@@ -2419,14 +2422,30 @@
     li = li || { description:'', quantity:1, unit_price:0 };
     var row = document.createElement('div');
     row.className = 'line-item-row';
-    var desc = (li.description || '').replace(/"/g, '&quot;');
+    var desc = li.description || '';
+    var isPreset = LINE_ITEM_PRESETS.indexOf(desc) !== -1;
+    var selectValue = desc === '' ? '' : (isPreset ? desc : 'Other');
+    var otherValue = (desc !== '' && !isPreset) ? desc : '';
+    var optionsHtml = '<option value="" disabled'+(selectValue===''?' selected':'')+'>Select an item…</option>' +
+      LINE_ITEM_PRESETS.map(function(p){
+        return '<option value="'+esc(p)+'"'+(selectValue===p?' selected':'')+'>'+esc(p)+'</option>';
+      }).join('') +
+      '<option value="Other"'+(selectValue==='Other'?' selected':'')+'>Other…</option>';
     row.innerHTML =
-      '<input type="text" class="li-desc" placeholder="Description" value="'+desc+'">' +
+      '<div class="li-desc-wrap">' +
+        '<select class="li-desc-select">'+optionsHtml+'</select>' +
+        '<input type="text" class="li-desc-other" placeholder="Describe the item" value="'+esc(otherValue)+'"'+(selectValue==='Other'?'':' hidden')+'>' +
+      '</div>' +
       '<input type="number" class="li-qty" min="0" step="0.01" value="'+(li.quantity!=null?li.quantity:1)+'">' +
       '<input type="number" class="li-price" min="0" step="0.01" value="'+(li.unit_price!=null?li.unit_price:0)+'">' +
       '<span class="li-amount">$0</span>' +
       '<button type="button" class="li-remove" title="Remove line">&times;</button>';
     document.getElementById('line-items').appendChild(row);
+    var otherInput = row.querySelector('.li-desc-other');
+    row.querySelector('.li-desc-select').addEventListener('change', function(){
+      if (this.value === 'Other'){ otherInput.hidden = false; otherInput.focus(); }
+      else { otherInput.hidden = true; otherInput.value = ''; }
+    });
     row.querySelectorAll('.li-qty, .li-price').forEach(function(inp){ inp.addEventListener('input', updateLineItemsTotal); });
     row.querySelector('.li-remove').addEventListener('click', function(){ row.remove(); updateLineItemsTotal(); });
     updateLineItemsTotal();
@@ -2440,7 +2459,10 @@
     var rows = document.querySelectorAll('#line-items .line-item-row');
     var items = [];
     rows.forEach(function(row){
-      var desc = row.querySelector('.li-desc').value.trim();
+      var sel = row.querySelector('.li-desc-select');
+      var desc = sel.value === 'Other'
+        ? row.querySelector('.li-desc-other').value.trim()
+        : (sel.value || '').trim();
       var qty = parseFloat(row.querySelector('.li-qty').value) || 0;
       var price = parseFloat(row.querySelector('.li-price').value) || 0;
       if (desc) items.push({ description: desc, quantity: qty, unit_price: price });
@@ -2929,15 +2951,11 @@
     if (job.status === 'quoted' && job.public_token){
       bodyLines.push(
         '',
-        'You can review this estimate and accept or decline it right online — no login needed:',
+        'You can review this estimate and accept or decline it right online:',
         publicEstimateUrl(job)
       );
     }
     bodyLines.push(
-      '',
-      'A printable PDF isn\'t attached automatically — use the Print button on ' +
-        'this ' + docWord + ' and choose "Save as PDF" if you haven\'t already, ' +
-        'then attach that file to this email before sending.',
       '',
       'Thanks!',
       bizName
