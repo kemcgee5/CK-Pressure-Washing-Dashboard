@@ -393,6 +393,17 @@
   .estimate-response-banner.declined{ background:var(--critical-soft); color:var(--critical); }
   .estimate-response-banner.neutral{ background:var(--surface-2); color:var(--ink-2); border:1px solid var(--line); }
   .estimate-error{ max-width:480px; margin:80px auto; text-align:center; font-size:14px; color:var(--ink-2); }
+  .pay-box{ margin-top:28px; padding:18px; border-radius:10px; background:var(--surface-2); border:1px solid var(--line); }
+  .pay-box .pay-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .pay-box .pay-head b{ font-size:15px; }
+  .btn-pay{ font-family:"IBM Plex Sans", sans-serif; font-size:14.5px; font-weight:700;
+    background:var(--water); color:#fff; border:none; border-radius:7px; padding:11px 22px; cursor:pointer; width:100%; }
+  .btn-pay:disabled{ opacity:.6; cursor:default; }
+  .pay-fee-note{ font-size:11.5px; color:var(--muted); margin-top:6px; text-align:center; }
+  .pay-alt{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-2); }
+  .pay-alt .pay-alt-title{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:8px; }
+  .pay-alt-row{ display:flex; justify-content:space-between; gap:12px; padding:4px 0; }
+  .pay-status{ margin-top:16px; text-align:center; font-size:13px; color:var(--ink-2); }
 
   @media print{
     body *{ visibility:hidden; }
@@ -662,6 +673,17 @@
             <input id="p-logo" type="file" accept="image/*">
           </div>
         </div>
+        <div class="field span-2" style="border-top:1px solid var(--line);padding-top:14px;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
+            <input id="p-accept-online" type="checkbox" style="width:auto;">
+            Accept online card payments (Stripe) on client invoice links
+          </label>
+          <p class="form-hint" style="margin:6px 0 0;">Leave this off until your Stripe account is set up and verified — see round-9-stripe-payments.sql for the full setup.</p>
+        </div>
+        <div class="field"><label for="p-fee-pct">Card Processing Fee (%)</label><input id="p-fee-pct" type="number" min="0" max="3" step="0.1" placeholder="0–3"></div>
+        <div class="field"><label for="p-cashapp">Cash App ($cashtag)</label><input id="p-cashapp" type="text" placeholder="$ckpressurewashing"></div>
+        <div class="field"><label for="p-zelle">Zelle (phone or email)</label><input id="p-zelle" type="text" placeholder="(770) 555-0134"></div>
+        <div class="field"><label for="p-venmo">Venmo (@handle)</label><input id="p-venmo" type="text" placeholder="@ck-pressure-washing"></div>
         <div class="form-actions">
           <button type="submit" class="btn-save">Save Business Info</button>
           <span id="profile-saving" hidden style="font-size:12.5px;color:var(--muted);">Saving…</span>
@@ -2184,6 +2206,11 @@
       document.getElementById('p-interval').value = profile && profile.default_service_interval_months != null ? profile.default_service_interval_months : '';
       document.getElementById('p-mileage').value = profile && profile.mileage_rate != null ? profile.mileage_rate : '';
       document.getElementById('p-review').value = profile ? (profile.review_link||'') : '';
+      document.getElementById('p-accept-online').checked = !!(profile && profile.accept_online_payments);
+      document.getElementById('p-fee-pct').value = profile && profile.online_payment_fee_pct != null ? profile.online_payment_fee_pct : 3;
+      document.getElementById('p-cashapp').value = profile ? (profile.cashapp_handle||'') : '';
+      document.getElementById('p-zelle').value = profile ? (profile.zelle_handle||'') : '';
+      document.getElementById('p-venmo').value = profile ? (profile.venmo_handle||'') : '';
       var preview = document.getElementById('p-logo-preview');
       if (profile && profile.logo_path){ preview.src = profile.logo_path; preview.hidden = false; }
       else { preview.hidden = true; }
@@ -3024,6 +3051,14 @@
       return;
     }
     renderPublicEstimate(token, res.data);
+
+    // Returning from a Stripe Checkout redirect — the webhook that actually
+    // marks the job paid may not have landed yet, so poll briefly instead
+    // of showing a stale balance.
+    var justPaid = new URLSearchParams(window.location.search).get('paid') === '1';
+    if (justPaid && jobBalanceDue(res.data) > 0){
+      pollForPaymentConfirmation(token);
+    }
   }
 
   function renderPublicEstimate(token, job){
@@ -3046,6 +3081,10 @@
       '</div></div>'
     ) : '';
 
+    var isEstimate = job.status === 'quoted' || job.status === 'declined';
+    var docTitle = isEstimate ? 'ESTIMATE' : 'INVOICE';
+    var billLabel = isEstimate ? 'Prepared For' : 'Bill To';
+
     var actionOrBanner;
     if (job.status === 'quoted' && !job.client_response){
       actionOrBanner = '<div class="invoice-actions no-print">' +
@@ -3060,24 +3099,60 @@
       actionOrBanner = '<div class="estimate-response-banner declined">You declined this estimate' +
         (job.client_responded_at ? ' on '+fmtDate(String(job.client_responded_at).slice(0,10)) : '') +
         '. If you change your mind, just give us a call.</div>';
-    } else {
+    } else if (isEstimate){
       actionOrBanner = '<div class="estimate-response-banner neutral">This estimate has already been handled — please contact us if you have any questions.</div>';
+    } else {
+      actionOrBanner = '';
+    }
+
+    var received = amountReceived(job);
+    var balance = jobBalanceDue(job);
+    var paidRowHtml = (!isEstimate && received > 0)
+      ? '<div class="invoice-status-row"><span>Paid'+(job.payment_method ? ' ('+esc(job.payment_method)+(job.paid_date ? ', '+fmtDate(job.paid_date) : '')+')' : '')+'</span><span>'+fmtMoney2(received)+'</span></div>'
+      : '';
+    var balanceRowHtml = (!isEstimate && balance > 0)
+      ? '<div class="invoice-status-row"><span><b>Balance Due</b></span><span><b>'+fmtMoney2(balance)+'</b></span></div>'
+      : '';
+
+    var payBoxHtml = '';
+    if (balance > 0){
+      var feePct = Math.min(Math.max(Number(profile.online_payment_fee_pct) || 0, 0), 3);
+      var payButtonHtml = profile.accept_online_payments
+        ? '<button type="button" class="btn-pay no-print" id="invoice-pay-btn">Pay '+fmtMoney2(balance)+' Online</button>' +
+          (feePct > 0 ? '<div class="pay-fee-note no-print">Card payments include a '+feePct+'% processing fee, added at checkout.</div>' : '')
+        : '';
+      var altRows = [
+        profile.cashapp_handle ? ['Cash App', profile.cashapp_handle] : null,
+        profile.zelle_handle ? ['Zelle', profile.zelle_handle] : null,
+        profile.venmo_handle ? ['Venmo', profile.venmo_handle] : null
+      ].filter(Boolean);
+      var altHtml = altRows.length
+        ? '<div class="pay-alt no-print"><div class="pay-alt-title">'+(payButtonHtml ? 'Or pay another way' : 'Ways to pay')+'</div>' +
+            altRows.map(function(r){ return '<div class="pay-alt-row"><span>'+esc(r[0])+'</span><span><b>'+esc(r[1])+'</b></span></div>'; }).join('') +
+          '</div>'
+        : '';
+      if (payButtonHtml || altHtml){
+        payBoxHtml = '<div class="pay-box no-print"><div class="pay-head"><b>Pay this invoice</b><span>'+fmtMoney2(balance)+' due</span></div>' +
+          payButtonHtml + altHtml + '<div class="pay-status" id="pay-status" hidden></div></div>';
+      }
     }
 
     document.getElementById('public-estimate-sheet').innerHTML =
       '<div class="invoice-head">' +
         '<div class="invoice-brand">'+logoHtml+'<div class="biz-name">'+esc(bizName)+'</div><div class="biz-meta">'+metaLines+'</div></div>' +
-        '<div class="invoice-title"><h3>ESTIMATE</h3><div class="inv-meta">#'+job.id+'<br>'+fmtDate(job.job_date)+'</div></div>' +
+        '<div class="invoice-title"><h3>'+docTitle+'</h3><div class="inv-meta">#'+job.id+'<br>'+fmtDate(job.job_date)+'</div></div>' +
       '</div>' +
-      '<div class="invoice-billto"><div class="label">Prepared For</div><div><b>'+esc(job.client_name)+'</b><br>'+esc(job.address)+'</div></div>' +
+      '<div class="invoice-billto"><div class="label">'+billLabel+'</div><div><b>'+esc(job.client_name)+'</b><br>'+esc(job.address)+'</div></div>' +
       '<table class="invoice-lines"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>'+linesHtml+'</tbody></table>' +
       '<div class="invoice-totals">' +
         '<div class="invoice-total-row"><span>Subtotal</span><span>'+fmtMoney(totals.subtotal)+'</span></div>' +
         taxRowHtml +
         '<div class="invoice-total-row grand"><span>Total</span><span>'+fmtMoney(totals.total)+'</span></div>' +
       '</div>' +
+      paidRowHtml + balanceRowHtml +
       photosHtml +
-      actionOrBanner;
+      actionOrBanner +
+      payBoxHtml;
 
     var acceptBtn = document.getElementById('estimate-accept');
     var declineBtn = document.getElementById('estimate-decline');
@@ -3087,6 +3162,61 @@
     if (declineBtn){
       declineBtn.addEventListener('click', function(){ respondToEstimate(token, 'declined', acceptBtn, declineBtn); });
     }
+    var payBtn = document.getElementById('invoice-pay-btn');
+    if (payBtn){
+      payBtn.addEventListener('click', function(){ startCheckout(token, payBtn); });
+    }
+  }
+
+  // ---- "Pay Here": redirects to a Stripe-hosted Checkout page created by
+  // api/checkout.js (see round-9-stripe-payments.sql). The actual payment
+  // record is written by api/stripe-webhook.js once Stripe confirms the
+  // charge — not by this redirect — so a closed tab or failed return trip
+  // can never mark something paid that wasn't.
+  async function startCheckout(token, btn){
+    btn.disabled = true;
+    var original = btn.textContent;
+    btn.textContent = 'Starting checkout…';
+    try {
+      var res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token })
+      });
+      var data = await res.json().catch(function(){ return {}; });
+      if (!res.ok || !data.url){
+        throw new Error(data.error || 'Could not start checkout.');
+      }
+      window.location.href = data.url;
+    } catch(err){
+      window.alert(err.message || 'Could not start checkout — please try again or use another payment option.');
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  }
+
+  // After a successful Stripe payment, the client lands back here with
+  // ?paid=1. The webhook that actually marks the job paid can take a beat
+  // to arrive, so this briefly re-checks instead of showing a stale balance.
+  async function pollForPaymentConfirmation(token){
+    var statusEl = document.getElementById('pay-status');
+    var attempts = 0;
+    function tick(){
+      attempts++;
+      if (statusEl) { statusEl.hidden = false; statusEl.textContent = 'Finalizing your payment…'; }
+      setTimeout(async function(){
+        var res = await supabaseClient.rpc('get_estimate_by_token', { p_token: token });
+        if (res.data && jobBalanceDue(res.data) <= 0){
+          renderPublicEstimate(token, res.data);
+          return;
+        }
+        if (attempts < 5){ tick(); }
+        else if (statusEl) {
+          statusEl.textContent = "Payment received — just finishing up on our end. Refresh this page in a minute if the balance doesn't update.";
+        }
+      }, 1500);
+    }
+    tick();
   }
 
   async function respondToEstimate(token, response, acceptBtn, declineBtn){
@@ -3166,7 +3296,12 @@
         mileage_rate: document.getElementById('p-mileage').value === ''
           ? null : (parseFloat(document.getElementById('p-mileage').value) || 0),
         review_link: document.getElementById('p-review').value.trim() || null,
-        logo_path: logoPath
+        logo_path: logoPath,
+        accept_online_payments: document.getElementById('p-accept-online').checked,
+        online_payment_fee_pct: Math.min(Math.max(parseFloat(document.getElementById('p-fee-pct').value) || 0, 0), 3),
+        cashapp_handle: document.getElementById('p-cashapp').value.trim() || null,
+        zelle_handle: document.getElementById('p-zelle').value.trim() || null,
+        venmo_handle: document.getElementById('p-venmo').value.trim() || null
       };
       var res = await supabaseClient.from('business_profile').upsert(fields, {onConflict:'tenant_id'}).select().single();
       if (res.error) throw new Error(res.error.message);

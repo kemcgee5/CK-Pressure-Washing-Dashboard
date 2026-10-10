@@ -1,0 +1,10 @@
+{
+  "name": "ck-pressure-washing-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "description": "CK Pressure Washing dashboard — static site plus two Vercel serverless functions for Stripe payments.",
+  "dependencies": {
+    "stripe": "^17.4.0",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
