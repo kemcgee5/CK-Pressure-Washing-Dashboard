@@ -527,7 +527,7 @@
           </div>
           <div class="totals-box">
             <div class="totals-row"><span>Subtotal</span><b id="j-subtotal">$0</b></div>
-            <div class="totals-row"><span>Tax %</span><input id="j-tax" type="number" min="0" step="0.01" value="0"><b id="j-tax-amt">$0</b></div>
+            <div class="totals-row"><span>Processing fee %</span><input id="j-tax" type="number" min="0" step="0.01" value="0"><b id="j-tax-amt">$0</b></div>
             <div class="totals-row grand"><span>Total</span><b id="j-total">$0</b></div>
           </div>
         </div>
@@ -689,7 +689,7 @@
         <div class="field"><label for="p-phone">Phone</label><input id="p-phone" type="text" placeholder="(770) 555-0134"></div>
         <div class="field"><label for="p-email">Email</label><input id="p-email" type="email" placeholder="hello@ckpressurewashing.com"></div>
         <div class="field"><label for="p-address">Address</label><input id="p-address" type="text" placeholder="Dallas, GA"></div>
-        <div class="field"><label for="p-tax">Default Tax Rate (%)</label><input id="p-tax" type="number" min="0" step="0.01" placeholder="0"></div>
+        <div class="field"><label for="p-tax">Default Processing Fee (%)</label><input id="p-tax" type="number" min="0" step="0.01" placeholder="0"></div>
         <div class="field"><label for="p-interval">Re-service Reminder (months)</label><input id="p-interval" type="number" min="0" step="1" placeholder="12"></div>
         <div class="field"><label for="p-mileage">Mileage Rate ($/mile)</label><input id="p-mileage" type="number" min="0" step="0.001" placeholder="Current IRS standard rate"></div>
         <div class="field span-2"><label for="p-review">Google Review Link</label><input id="p-review" type="url" placeholder="https://g.page/r/…/review"></div>
@@ -725,7 +725,7 @@
             <div id="pr-meta" style="font-size:12.5px; color:var(--muted); margin-top:2px;"></div>
           </div>
         </div>
-        <p class="form-hint" style="margin:0;">Only the account owner can edit business name, contact info, tax rate, and logo.</p>
+        <p class="form-hint" style="margin:0;">Only the account owner can edit business name, contact info, processing fee, and logo.</p>
       </div>
       </div>
     </div>
@@ -1315,7 +1315,7 @@
     var hasLines = !!(job.line_items && job.line_items.length);
     var items = getInvoiceItems(job);
     var subtotal = items.reduce(function(s,li){ return s + Number(li.quantity)*Number(li.unit_price); }, 0);
-    // Without line items the stored price is already tax-inclusive, so don't add tax a second time.
+    // Without line items the stored price already includes any fee, so do not add it a second time.
     var taxRate = hasLines ? Number(job.tax_rate || 0) : 0;
     var taxAmt = subtotal * (taxRate / 100);
     return { items: items, subtotal: subtotal, taxRate: taxRate, taxAmt: taxAmt, total: subtotal + taxAmt };
@@ -2391,7 +2391,7 @@
   // Resolves the signed-in user's membership for THIS dashboard's tenant.
   // Returns {tenantId, role} if they're a member, or null if they aren't (or aren't signed in).
   // role is 'owner' (full access, including Business Info/branding) or 'staff'
-  // (everything except editing business name, contact info, tax rate, and logo).
+  // (everything except editing business name, contact info, processing fee, and logo).
   async function resolveMembershipForCurrentUser(){
     var membership = await supabaseClient
       .from('memberships')
@@ -3008,7 +3008,7 @@
       var amt = Number(li.quantity) * Number(li.unit_price);
       return '<tr><td>'+li.description+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoney(li.unit_price)+'</td><td class="num">'+fmtMoney(amt)+'</td></tr>';
     }).join('');
-    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Tax ('+totals.taxRate+'%)</span><span>'+fmtMoney(totals.taxAmt)+'</span></div>') : '';
+    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Processing Fee ('+totals.taxRate+'%)</span><span>'+fmtMoney(totals.taxAmt)+'</span></div>') : '';
     var photos = job.photos || [];
     var photosHtml = photos.length ? (
       '<div class="invoice-photos"><div class="label">Job Photos</div><div class="invoice-photo-grid">' +
@@ -3173,7 +3173,7 @@
       var amt = Number(li.quantity) * Number(li.unit_price);
       return '<tr><td>'+esc(li.description)+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoney(li.unit_price)+'</td><td class="num">'+fmtMoney(amt)+'</td></tr>';
     }).join('');
-    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Tax ('+totals.taxRate+'%)</span><span>'+fmtMoney(totals.taxAmt)+'</span></div>') : '';
+    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Processing Fee ('+totals.taxRate+'%)</span><span>'+fmtMoney(totals.taxAmt)+'</span></div>') : '';
     var photos = job.photos || [];
     var photosHtml = photos.length ? (
       '<div class="invoice-photos"><div class="label">Job Photos</div><div class="invoice-photo-grid">' +
