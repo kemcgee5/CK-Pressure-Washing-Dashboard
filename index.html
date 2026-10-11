@@ -725,11 +725,15 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card collapsed" id="comp-card">
       <div class="card-head">
-        <div><h2>Business Dates</h2><p class="card-sub">Insurance, licenses, and registrations — so a renewal never sneaks up on you.</p></div>
-        <button id="comp-add-btn" class="btn-add small" type="button">+ Date</button>
+        <div><h2>Business Dates</h2><p class="card-sub" id="comp-summary">Insurance, licenses, and registrations — so a renewal never sneaks up on you.</p></div>
+        <div class="card-actions">
+          <button id="comp-add-btn" class="btn-add small" type="button">+ Date</button>
+          <button type="button" id="comp-toggle" class="btn-add small collapse-toggle" aria-expanded="false" aria-controls="comp-wrap"><span id="comp-toggle-label">Show</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        </div>
       </div>
+      <div id="comp-wrap" hidden>
       <form id="comp-form" class="row-form" hidden>
         <p class="form-title" id="comp-form-title">Add Business Date</p>
         <div class="field span-2"><label for="cm-name">What is it</label><input id="cm-name" type="text" placeholder="General liability insurance" required></div>
@@ -747,6 +751,7 @@
           <thead><tr><th>Item</th><th>Due</th><th>Status</th><th></th></tr></thead>
           <tbody id="comp-body"></tbody>
         </table>
+      </div>
       </div>
     </div>
 
@@ -1696,6 +1701,13 @@
       if (!a.due_date) return 1; if (!b.due_date) return -1;
       return a.due_date.localeCompare(b.due_date);
     });
+    var sumEl = document.getElementById('comp-summary');
+    if (sumEl){
+      var bad = list.filter(function(k){ return complianceStatus(k).cls === 'bad'; }).length;
+      var soon = list.filter(function(k){ return complianceStatus(k).cls === 'warn'; }).length;
+      sumEl.innerHTML = !list.length ? 'Insurance, licenses, and registrations — nothing tracked yet.'
+        : list.length + ' tracked' + (bad ? ' · <b style="color:var(--critical)">'+bad+' overdue</b>' : '') + (soon ? ' · <b>'+soon+' due soon</b>' : '') + (!bad && !soon ? ' · all current' : '');
+    }
     if (!list.length){
       el.innerHTML = '<tr><td colspan="4" class="empty-note">Nothing tracked yet — add your insurance, license, and LLC registration dates.</td></tr>';
       return;
@@ -3682,13 +3694,22 @@
   var compForm = document.getElementById('comp-form');
   var compBtn = document.getElementById('comp-add-btn');
   var compError = document.getElementById('comp-error');
+  var compWrap = document.getElementById('comp-wrap');
+  var compCard = document.getElementById('comp-card');
+  var compToggle = document.getElementById('comp-toggle');
+  function setCompOpen(open){
+    compWrap.hidden = !open; compCard.classList.toggle('collapsed', !open);
+    compToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.getElementById('comp-toggle-label').textContent = open ? 'Hide' : 'Show';
+  }
+  compToggle.addEventListener('click', function(){ setCompOpen(compWrap.hidden); });
   function closeCompForm(){
     compForm.hidden = true; compForm.reset(); compBtn.hidden = false;
     compError.hidden = true; editingComplianceId = null;
     document.getElementById('comp-form-title').textContent = 'Add Business Date';
   }
   compBtn.addEventListener('click', function(){
-    compForm.hidden = false; compBtn.hidden = true; document.getElementById('cm-name').focus();
+    setCompOpen(true); compForm.hidden = false; compBtn.hidden = true; document.getElementById('cm-name').focus();
   });
   document.getElementById('comp-cancel').addEventListener('click', closeCompForm);
   compForm.addEventListener('submit', async function(e){
@@ -3717,6 +3738,7 @@
     if (!item) return;
     if (btn.dataset.action === 'comp-edit'){
       editingComplianceId = item.id;
+      setCompOpen(true);
       compForm.hidden = false; compBtn.hidden = true;
       document.getElementById('comp-form-title').textContent = 'Edit ' + item.name;
       document.getElementById('cm-name').value = item.name;
