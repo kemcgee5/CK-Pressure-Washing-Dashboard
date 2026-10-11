@@ -1349,6 +1349,8 @@
   }
 
   // ================= Customers, money, and everything built on top of them =================
+  // Whole dollars when exact, otherwise cents — never rounds a fee or total.
+  function fmtMoneyX(n){ var v = Math.round(Number(n||0)*100)/100; return Math.abs(v - Math.round(v)) < 0.005 ? fmtMoney(v) : fmtMoney2(v); }
   function fmtMoney2(n){ return "$" + Number(n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
   function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -1613,7 +1615,7 @@
         var hist = s.jobs.slice().sort(function(a,b){ return b.job_date.localeCompare(a.job_date); });
         var histRows = hist.length ? hist.map(function(j){
           return '<tr><td class="dt">'+fmtDateSmart(j.job_date)+'</td><td>'+esc(j.service_type)+'</td>' +
-            '<td class="num">'+fmtMoney(invoiceTotal(j))+'</td>' +
+            '<td class="num">'+fmtMoneyX(invoiceTotal(j))+'</td>' +
             '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
             '<td><button class="icon-btn" type="button" data-action="cust-open-job" data-id="'+j.id+'">Open</button></td></tr>';
         }).join('') : '<tr><td colspan="5" class="empty-note">No jobs recorded yet.</td></tr>';
@@ -1996,7 +1998,7 @@
       return '<tr><td><b>'+esc(j.client_name)+'</b><div class="addr-sub">'+esc(j.address)+'</div></td>' +
         '<td>'+esc(j.service_type)+'</td>' +
         '<td class="date">'+fmtDate(j.job_date)+(j.start_time ? '<div class="addr-sub">'+fmtTime(j.start_time)+'</div>' : '')+'</td>' +
-        '<td class="money">'+fmtMoney(invoiceTotal(j))+(bal > 0 ? '<div class="addr-sub">'+fmtMoney(bal)+' due</div>' : '')+'</td>' +
+        '<td class="money">'+fmtMoneyX(invoiceTotal(j))+(bal > 0 ? '<div class="addr-sub">'+fmtMoney(bal)+' due</div>' : '')+'</td>' +
         '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
         '<td>'+photoThumbs(j.photos)+'</td>' +
         '<td>'+actions+'</td></tr>';
@@ -2024,7 +2026,7 @@
         return '<tr><td>'+label+' #'+j.id+'</td>' +
           '<td><b>'+esc(j.client_name)+'</b><div class="addr-sub">'+esc(j.address)+'</div></td>' +
           '<td class="date">'+fmtDate(j.job_date)+'</td>' +
-          '<td class="money">'+fmtMoney(invoiceTotal(j))+'</td>' +
+          '<td class="money">'+fmtMoneyX(invoiceTotal(j))+'</td>' +
           '<td><span class="chip '+j.status+'">'+STATUS_LABEL[j.status]+'</span></td>' +
           '<td><button class="btn-add small" type="button" data-action="view-invoice" data-id="'+j.id+'">View</button></td></tr>';
       }).join('');
@@ -2537,14 +2539,14 @@
       var qty = parseFloat(row.querySelector('.li-qty').value) || 0;
       var price = parseFloat(row.querySelector('.li-price').value) || 0;
       var amt = qty * price;
-      row.querySelector('.li-amount').textContent = fmtMoney(amt);
+      row.querySelector('.li-amount').textContent = fmtMoneyX(amt);
       subtotal += amt;
     });
     var taxRate = parseFloat(document.getElementById('j-tax').value) || 0;
     var taxAmt = subtotal * (taxRate / 100);
-    document.getElementById('j-subtotal').textContent = fmtMoney(subtotal);
-    document.getElementById('j-tax-amt').textContent = fmtMoney(taxAmt);
-    document.getElementById('j-total').textContent = fmtMoney(subtotal + taxAmt);
+    document.getElementById('j-subtotal').textContent = fmtMoneyX(subtotal);
+    document.getElementById('j-tax-amt').textContent = fmtMoneyX(taxAmt);
+    document.getElementById('j-total').textContent = fmtMoneyX(subtotal + taxAmt);
   }
   document.getElementById('j-tax').addEventListener('input', updateLineItemsTotal);
   function addLineItemRow(li){
@@ -3006,9 +3008,9 @@
     var metaLines = [profile.phone, profile.email, profile.address].filter(Boolean).join(' &middot; ');
     var linesHtml = totals.items.map(function(li){
       var amt = Number(li.quantity) * Number(li.unit_price);
-      return '<tr><td>'+li.description+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoney(li.unit_price)+'</td><td class="num">'+fmtMoney(amt)+'</td></tr>';
+      return '<tr><td>'+li.description+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoneyX(li.unit_price)+'</td><td class="num">'+fmtMoneyX(amt)+'</td></tr>';
     }).join('');
-    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Processing Fee ('+totals.taxRate+'%)</span><span>'+fmtMoney(totals.taxAmt)+'</span></div>') : '';
+    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Processing Fee ('+totals.taxRate+'%)</span><span>'+fmtMoneyX(totals.taxAmt)+'</span></div>') : '';
     var photos = job.photos || [];
     var photosHtml = photos.length ? (
       '<div class="invoice-photos"><div class="label">Job Photos</div><div class="invoice-photo-grid">' +
@@ -3026,9 +3028,9 @@
       '<div class="invoice-billto"><div class="label">'+billLabel+'</div><div><b>'+esc(job.client_name)+'</b><br>'+esc(job.address)+'</div></div>' +
       '<table class="invoice-lines"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>'+linesHtml+'</tbody></table>' +
       '<div class="invoice-totals">' +
-        '<div class="invoice-total-row"><span>Subtotal</span><span>'+fmtMoney(totals.subtotal)+'</span></div>' +
+        '<div class="invoice-total-row"><span>Subtotal</span><span>'+fmtMoneyX(totals.subtotal)+'</span></div>' +
         taxRowHtml +
-        '<div class="invoice-total-row grand"><span>Total</span><span>'+fmtMoney(totals.total)+'</span></div>' +
+        '<div class="invoice-total-row grand"><span>Total</span><span>'+fmtMoneyX(totals.total)+'</span></div>' +
       '</div>' +
       (!isEstimate && amountReceived(job) > 0
         ? '<div class="invoice-status-row"><span>Paid'+(job.payment_method ? ' ('+esc(job.payment_method)+(job.paid_date ? ', '+fmtDate(job.paid_date) : '')+')' : '')+'</span><span>'+fmtMoney2(amountReceived(job))+'</span></div>'
@@ -3105,7 +3107,7 @@
       'Here is your ' + docWord + ' from ' + bizName + ' for the ' + (job.service_type || 'service') +
         ' at ' + job.address + '.',
       '',
-      'Total: ' + fmtMoney(totals.total)
+      'Total: ' + fmtMoneyX(totals.total)
     ];
     if (!isEstimate && jobBalanceDue(job) > 0){
       bodyLines.push('Balance due: ' + fmtMoney2(jobBalanceDue(job)));
@@ -3171,9 +3173,9 @@
     var metaLines = [profile.phone, profile.email, profile.address].filter(Boolean).join(' &middot; ');
     var linesHtml = totals.items.map(function(li){
       var amt = Number(li.quantity) * Number(li.unit_price);
-      return '<tr><td>'+esc(li.description)+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoney(li.unit_price)+'</td><td class="num">'+fmtMoney(amt)+'</td></tr>';
+      return '<tr><td>'+esc(li.description)+'</td><td class="num">'+li.quantity+'</td><td class="num">'+fmtMoneyX(li.unit_price)+'</td><td class="num">'+fmtMoneyX(amt)+'</td></tr>';
     }).join('');
-    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Processing Fee ('+totals.taxRate+'%)</span><span>'+fmtMoney(totals.taxAmt)+'</span></div>') : '';
+    var taxRowHtml = totals.taxRate ? ('<div class="invoice-total-row"><span>Processing Fee ('+totals.taxRate+'%)</span><span>'+fmtMoneyX(totals.taxAmt)+'</span></div>') : '';
     var photos = job.photos || [];
     var photosHtml = photos.length ? (
       '<div class="invoice-photos"><div class="label">Job Photos</div><div class="invoice-photo-grid">' +
@@ -3247,9 +3249,9 @@
       '<div class="invoice-billto"><div class="label">'+billLabel+'</div><div><b>'+esc(job.client_name)+'</b><br>'+esc(job.address)+'</div></div>' +
       '<table class="invoice-lines"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>'+linesHtml+'</tbody></table>' +
       '<div class="invoice-totals">' +
-        '<div class="invoice-total-row"><span>Subtotal</span><span>'+fmtMoney(totals.subtotal)+'</span></div>' +
+        '<div class="invoice-total-row"><span>Subtotal</span><span>'+fmtMoneyX(totals.subtotal)+'</span></div>' +
         taxRowHtml +
-        '<div class="invoice-total-row grand"><span>Total</span><span>'+fmtMoney(totals.total)+'</span></div>' +
+        '<div class="invoice-total-row grand"><span>Total</span><span>'+fmtMoneyX(totals.total)+'</span></div>' +
       '</div>' +
       paidRowHtml + balanceRowHtml +
       photosHtml +
