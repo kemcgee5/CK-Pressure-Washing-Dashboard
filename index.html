@@ -581,8 +581,12 @@
 
   <!-- ============== SCHEDULE ============== -->
   <section class="tab-panel" id="tab-schedule" hidden>
-    <div class="card">
-      <h2>Workers</h2>
+    <div class="card collapsed" id="workers-card">
+      <div class="card-head">
+        <div><h2>Workers</h2><p class="card-sub" id="workers-summary">Add the people you assign jobs to.</p></div>
+        <button type="button" id="workers-toggle" class="btn-add small collapse-toggle" aria-expanded="false" aria-controls="workers-wrap"><span id="workers-toggle-label">Show</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      </div>
+      <div id="workers-wrap" hidden>
       <p class="card-sub">Add the people you assign jobs to. Phone lets you text them the work order; pay rate lets the dashboard work out what each job actually costs you.</p>
       <form id="worker-add-form" class="worker-row-form">
         <input id="worker-name-input" type="text" placeholder="Worker name" required>
@@ -597,6 +601,7 @@
       </form>
       <ul class="worker-list" id="workers-list"></ul>
       <p id="worker-error" class="form-error" hidden></p>
+      </div>
     </div>
 
     <div class="card">
@@ -2083,6 +2088,11 @@
   }
   function renderWorkers(workers){
     var el = document.getElementById('workers-list');
+    var wsum = document.getElementById('workers-summary');
+    if (wsum){
+      var names = (workers||[]).map(function(w){ return w.name; });
+      wsum.textContent = names.length ? names.length + (names.length === 1 ? ' worker · ' : ' workers · ') + names.join(', ') : 'No workers yet — add the people you assign jobs to.';
+    }
     if (!workers || !workers.length){ el.innerHTML = '<li class="worker-empty">No workers yet — add one above.</li>'; return; }
     el.innerHTML = workers.map(function(w){
       var actions = isLive
@@ -2096,6 +2106,14 @@
     }).join('');
   }
 
+  var workersWrap = document.getElementById('workers-wrap');
+  var workersToggle = document.getElementById('workers-toggle');
+  function setWorkersOpen(open){
+    workersWrap.hidden = !open; document.getElementById('workers-card').classList.toggle('collapsed', !open);
+    workersToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.getElementById('workers-toggle-label').textContent = open ? 'Hide' : 'Show';
+  }
+  workersToggle.addEventListener('click', function(){ setWorkersOpen(workersWrap.hidden); });
   var workerForm = document.getElementById('worker-add-form');
   var workerError = document.getElementById('worker-error');
   var workerSaveBtn = document.getElementById('worker-save-btn');
@@ -2110,6 +2128,7 @@
   }
   function openWorkerFormForEdit(worker){
     editingWorkerId = worker.id;
+    setWorkersOpen(true);
     document.getElementById('worker-name-input').value = worker.name;
     document.getElementById('worker-phone-input').value = worker.phone || '';
     document.getElementById('worker-pay-type').value = worker.pay_type || 'hourly';
