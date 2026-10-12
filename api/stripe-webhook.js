@@ -17,7 +17,10 @@
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+// Vercel env values pasted with a stray space, newline or quotes break auth headers.
+function env(name){ return String(process.env[name] || '').trim().replace(/^["']+|["']+$/g, ''); }
+
+const stripe = new Stripe(env('STRIPE_SECRET_KEY') || '');
 
 function readRawBody(readable) {
   return new Promise((resolve, reject) => {
@@ -38,7 +41,7 @@ module.exports = async (req, res) => {
   try {
     const sig = req.headers['stripe-signature'];
     const rawBody = await readRawBody(req);
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(rawBody, sig, env('STRIPE_WEBHOOK_SECRET'));
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     res.status(400).send('Webhook Error: ' + err.message);
@@ -53,11 +56,11 @@ module.exports = async (req, res) => {
     const token = session.metadata && session.metadata.ck_token;
     if (token) {
       try {
-        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+        const supabase = createClient(env('SUPABASE_URL'), env('SUPABASE_ANON_KEY'));
         const { error } = await supabase.rpc('record_stripe_payment', {
           p_token: token,
           p_session_id: session.id,
-          p_secret: process.env.CK_WEBHOOK_SECRET,
+          p_secret: env('CK_WEBHOOK_SECRET'),
         });
         if (error) console.error('record_stripe_payment failed:', error.message);
       } catch (err) {

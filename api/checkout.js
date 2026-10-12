@@ -12,6 +12,9 @@
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 
+// Vercel env values pasted with a stray space, newline or quotes break auth headers.
+function env(name){ return String(process.env[name] || '').trim().replace(/^["']+|["']+$/g, ''); }
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -26,12 +29,12 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (!process.env.STRIPE_SECRET_KEY || !process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    if (!env('STRIPE_SECRET_KEY') || !env('SUPABASE_URL') || !env('SUPABASE_ANON_KEY')) {
       res.status(500).json({ error: 'Payments are not configured on the server yet.' });
       return;
     }
 
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+    const supabase = createClient(env('SUPABASE_URL'), env('SUPABASE_ANON_KEY'));
     const { data: job, error } = await supabase.rpc('get_estimate_by_token', { p_token: token });
     if (error || !job) {
       res.status(404).json({ error: "This invoice link isn't valid." });
@@ -66,7 +69,7 @@ module.exports = async (req, res) => {
     const feePct = Math.min(Math.max(Number(profile.online_payment_fee_pct) || 0, 0), 3);
     const feeCents = feePct > 0 ? Math.round((balanceCents * feePct) / 100) : 0;
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const stripe = new Stripe(env('STRIPE_SECRET_KEY'));
     const lineItems = [{
       price_data: {
         currency: 'usd',
@@ -101,6 +104,9 @@ module.exports = async (req, res) => {
     res.status(200).json({ url: session.url });
   } catch (err) {
     console.error('checkout.js error:', err);
+    if (err && err.detail) console.error('checkout.js cause:', err.detail.message || err.detail);
+    var k = env('STRIPE_SECRET_KEY');
+    console.error('checkout.js key shape:', k.slice(0, 8) + '… length ' + k.length + (/\s/.test(k) ? ' (contains whitespace)' : ''));
     res.status(500).json({ error: 'Could not start checkout. Please try again or use another payment option.' });
   }
 };
