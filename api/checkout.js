@@ -66,8 +66,15 @@ module.exports = async (req, res) => {
     }
 
     const balanceCents = Math.round(balance * 100);
-    const feePct = Math.min(Math.max(Number(profile.online_payment_fee_pct) || 0, 0), 3);
-    const feeCents = feePct > 0 ? Math.round((balanceCents * feePct) / 100) : 0;
+    // Card fee pass-through: when turned on, add exactly enough that after
+    // Stripe takes its standard fee (2.9% + 30 cents) the business nets the
+    // full balance. gross = (balance + 0.30) / (1 - 0.029); the fee is the
+    // difference, rounded UP to the next cent so it can never fall short.
+    const feeOn = (Number(profile.online_payment_fee_pct) || 0) > 0;
+    const STRIPE_PCT = 0.029, STRIPE_FIXED_CENTS = 30;
+    const feeCents = feeOn
+      ? Math.ceil((balanceCents + STRIPE_FIXED_CENTS) / (1 - STRIPE_PCT)) - balanceCents
+      : 0;
 
     const stripe = new Stripe(env('STRIPE_SECRET_KEY'));
     const lineItems = [{
@@ -82,7 +89,7 @@ module.exports = async (req, res) => {
       lineItems.push({
         price_data: {
           currency: 'usd',
-          product_data: { name: 'Card processing fee (' + feePct + '%)' },
+          product_data: { name: 'Card processing fee' },
           unit_amount: feeCents,
         },
         quantity: 1,

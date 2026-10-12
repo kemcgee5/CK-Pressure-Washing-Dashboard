@@ -707,7 +707,7 @@
           </label>
           <p class="form-hint" style="margin:6px 0 0;">Leave this off until your Stripe account is set up and verified — see round-9-stripe-payments.sql for the full setup.</p>
         </div>
-        <div class="field"><label for="p-fee-pct">Card Processing Fee (%)</label><input id="p-fee-pct" type="number" min="0" max="3" step="0.1" placeholder="0–3"></div>
+        <div class="field"><label for="p-fee-pct">Card Processing Fee</label><select id="p-fee-pct"><option value="0">Off — I cover Stripe’s fee</option><option value="3">On — customer pays Stripe’s fee (2.9% + 30¢)</option></select></div>
         <div class="field"><label for="p-cashapp">Cash App ($cashtag)</label><input id="p-cashapp" type="text" placeholder="$ckpressurewashing"></div>
         <div class="field"><label for="p-zelle">Zelle (phone or email)</label><input id="p-zelle" type="text" placeholder="(770) 555-0134"></div>
         <div class="field"><label for="p-venmo">Venmo (@handle)</label><input id="p-venmo" type="text" placeholder="@ck-pressure-washing"></div>
@@ -2280,7 +2280,7 @@
       document.getElementById('p-mileage').value = profile && profile.mileage_rate != null ? profile.mileage_rate : '';
       document.getElementById('p-review').value = profile ? (profile.review_link||'') : '';
       document.getElementById('p-accept-online').checked = !!(profile && profile.accept_online_payments);
-      document.getElementById('p-fee-pct').value = profile && profile.online_payment_fee_pct != null ? profile.online_payment_fee_pct : 3;
+      document.getElementById('p-fee-pct').value = (profile && profile.online_payment_fee_pct != null ? Number(profile.online_payment_fee_pct) : 3) > 0 ? '3' : '0';
       document.getElementById('p-cashapp').value = profile ? (profile.cashapp_handle||'') : '';
       document.getElementById('p-zelle').value = profile ? (profile.zelle_handle||'') : '';
       document.getElementById('p-venmo').value = profile ? (profile.venmo_handle||'') : '';
@@ -3223,7 +3223,7 @@
       var feePct = Math.min(Math.max(Number(profile.online_payment_fee_pct) || 0, 0), 3);
       var payButtonHtml = profile.accept_online_payments
         ? '<button type="button" class="btn-pay no-print" id="invoice-pay-btn">Pay '+fmtMoney2(balance)+' Online</button>' +
-          (feePct > 0 ? '<div class="pay-fee-note no-print">Card payments include a '+feePct+'% processing fee, added at checkout.</div>' : '')
+          (feePct > 0 ? '<div class="pay-fee-note no-print">Paying by card adds a processing fee (2.9% + 30¢), shown at checkout. Other payment options below have no fee.</div>' : '')
         : '';
       var altRows = [
         profile.cashapp_handle ? ['Cash App', profile.cashapp_handle] : null,
