@@ -3223,7 +3223,7 @@
       var feePct = Math.min(Math.max(Number(profile.online_payment_fee_pct) || 0, 0), 3);
       var payButtonHtml = profile.accept_online_payments
         ? '<button type="button" class="btn-pay no-print" id="invoice-pay-btn">Pay '+fmtMoney2(balance)+' Online</button>' +
-          (feePct > 0 ? '<div class="pay-fee-note no-print">Paying by card adds a processing fee (2.9% + 30¢), shown at checkout. Other payment options below have no fee.</div>' : '')
+          (feePct > 0 ? '<div class="pay-fee-note no-print">Paying by card adds a processing fee (2.9% + 30¢), shown at checkout. Other payment options below have a 1% processing fee.</div>' : '')
         : '';
       var altRows = [
         profile.cashapp_handle ? ['Cash App', profile.cashapp_handle] : null,
