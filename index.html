@@ -355,6 +355,18 @@
   .pay-alt{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-2); }
   .pay-alt .pay-alt-title{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:8px; font-weight:700; }
   .pay-alt-row{ display:flex; justify-content:space-between; gap:12px; padding:4px 0; }
+  .pay-opts{ display:grid; gap:10px; }
+  .pay-opt{ display:flex; align-items:center; gap:12px; padding:13px 14px; border:1.5px solid var(--line); border-radius:10px; background:#fff; cursor:pointer; }
+  .pay-opt:hover{ border-color:var(--sun); }
+  .pay-opt input{ accent-color:var(--water); width:18px; height:18px; flex:none; }
+  .pay-opt:has(input:checked){ border-color:var(--water); box-shadow:0 0 0 3px rgba(20,48,95,.10); }
+  .pay-opt .po-main{ flex:1; display:flex; flex-direction:column; gap:1px; }
+  .pay-opt .po-main b{ font-size:15px; }
+  .pay-opt .po-main small{ font-size:12px; color:var(--muted); }
+  .pay-opt .po-amt{ font-family:var(--head); font-size:18px; font-weight:600; }
+  .pay-detail{ margin-top:14px; padding:14px; border-radius:10px; background:#fff; border:1px solid var(--line); font-size:14px; color:var(--ink-2); line-height:1.55; }
+  .pay-detail .pd-row{ display:flex; justify-content:space-between; gap:12px; padding:2px 0; }
+  .pay-detail .btn-pay{ margin-top:12px; }
   .pay-status{ margin-top:16px; text-align:center; font-size:13px; color:var(--ink-2); }
 
   /* ---------- Responsive ---------- */
@@ -3218,27 +3230,33 @@
       ? '<div class="invoice-status-row"><span><b>Balance Due</b></span><span><b>'+fmtMoney2(balance)+'</b></span></div>'
       : '';
 
+    // Client picks how they'll pay; the fee depends on the method:
+    // cash/check none, Zelle & other apps 1%, card Stripe's 2.9% + 30c.
+    var payMethods = [];
     var payBoxHtml = '';
     if (balance > 0){
-      var feePct = Math.min(Math.max(Number(profile.online_payment_fee_pct) || 0, 0), 3);
-      var payButtonHtml = profile.accept_online_payments
-        ? '<button type="button" class="btn-pay no-print" id="invoice-pay-btn">Pay '+fmtMoney2(balance)+' Online</button>' +
-          (feePct > 0 ? '<div class="pay-fee-note no-print">Paying by card adds a processing fee (2.9% + 30¢), shown at checkout. Other payment options below have a 1% processing fee.</div>' : '')
-        : '';
-      var altRows = [
-        profile.cashapp_handle ? ['Cash App', profile.cashapp_handle] : null,
+      var cardFeeOn = (Number(profile.online_payment_fee_pct) || 0) > 0;
+      var appHandles = [
         profile.zelle_handle ? ['Zelle', profile.zelle_handle] : null,
+        profile.cashapp_handle ? ['Cash App', profile.cashapp_handle] : null,
         profile.venmo_handle ? ['Venmo', profile.venmo_handle] : null
       ].filter(Boolean);
-      var altHtml = altRows.length
-        ? '<div class="pay-alt no-print"><div class="pay-alt-title">'+(payButtonHtml ? 'Or pay another way' : 'Ways to pay')+'</div>' +
-            altRows.map(function(r){ return '<div class="pay-alt-row"><span>'+esc(r[0])+'</span><span><b>'+esc(r[1])+'</b></span></div>'; }).join('') +
-          '</div>'
-        : '';
-      if (payButtonHtml || altHtml){
-        payBoxHtml = '<div class="pay-box no-print"><div class="pay-head"><b>Pay this invoice</b><span>'+fmtMoney2(balance)+' due</span></div>' +
-          payButtonHtml + altHtml + '<div class="pay-status" id="pay-status" hidden></div></div>';
+      payMethods.push({ id:'cash', label:'Cash or check', note:'No fee', fee:0 });
+      if (appHandles.length){
+        payMethods.push({ id:'app', label: appHandles.map(function(h){ return h[0]; }).join(' / '), note:'1% processing fee', fee: Math.round(balance * 100 * 0.01) / 100 });
       }
+      if (profile.accept_online_payments){
+        var cents = Math.round(balance * 100);
+        payMethods.push({ id:'card', label:'Credit or debit card', note: cardFeeOn ? 'Processing fee 2.9% + 30\u00a2' : 'No fee',
+          fee: cardFeeOn ? (Math.ceil((cents + 30) / (1 - 0.029)) - cents) / 100 : 0 });
+      }
+      payBoxHtml = '<div class="pay-box no-print"><div class="pay-head"><b>Pay this invoice</b><span>'+fmtMoney2(balance)+' due</span></div>' +
+        '<div style="font-size:13px;color:var(--muted);margin:-4px 0 10px;">Choose how you\'d like to pay:</div>' +
+        '<div class="pay-opts" role="radiogroup" aria-label="Payment method">' +
+        payMethods.map(function(m){
+          return '<label class="pay-opt"><input type="radio" name="pay-method" value="'+m.id+'"><span class="po-main"><b>'+esc(m.label)+'</b><small>'+m.note+'</small></span><span class="po-amt">'+fmtMoney2(balance + m.fee)+'</span></label>';
+        }).join('') +
+        '</div><div class="pay-detail" id="pay-detail" hidden></div><div class="pay-status" id="pay-status" hidden></div></div>';
     }
 
     document.getElementById('public-estimate-sheet').innerHTML =
@@ -3266,10 +3284,32 @@
     if (declineBtn){
       declineBtn.addEventListener('click', function(){ respondToEstimate(token, 'declined', acceptBtn, declineBtn); });
     }
-    var payBtn = document.getElementById('invoice-pay-btn');
-    if (payBtn){
-      payBtn.addEventListener('click', function(){ startCheckout(token, payBtn); });
-    }
+    var payDetail = document.getElementById('pay-detail');
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="pay-method"]'), function(radio){
+      radio.addEventListener('change', function(){
+        var m = payMethods.filter(function(x){ return x.id === radio.value; })[0];
+        if (!m || !payDetail) return;
+        var total = balance + m.fee;
+        var rows = '<div class="pd-row"><span>Invoice balance</span><span>'+fmtMoney2(balance)+'</span></div>' +
+          (m.fee > 0 ? '<div class="pd-row"><span>Processing fee</span><span>'+fmtMoney2(m.fee)+'</span></div>' : '') +
+          '<div class="pd-row"><b>You pay</b><b>'+fmtMoney2(total)+'</b></div>';
+        var how = '';
+        if (m.id === 'cash'){
+          how = '<div style="margin-top:10px;">Pay us in person, or make your check payable to <b>'+esc(bizName)+'</b>.' +
+            (profile.phone ? ' Questions? Call '+esc(profile.phone)+'.' : '') + '</div>';
+        } else if (m.id === 'app'){
+          how = '<div style="margin-top:10px;">Send exactly <b>'+fmtMoney2(total)+'</b> to:</div>' +
+            appHandles.map(function(h){ return '<div class="pd-row"><span>'+esc(h[0])+'</span><b>'+esc(h[1])+'</b></div>'; }).join('') +
+            '<div style="margin-top:6px;font-size:12.5px;color:var(--muted);">Please put invoice #'+job.id+' in the memo.</div>';
+        } else if (m.id === 'card'){
+          how = '<button type="button" class="btn-pay" id="invoice-pay-btn">Pay '+fmtMoney2(total)+' by Card</button>';
+        }
+        payDetail.innerHTML = rows + how;
+        payDetail.hidden = false;
+        var payBtn = document.getElementById('invoice-pay-btn');
+        if (payBtn) payBtn.addEventListener('click', function(){ startCheckout(token, payBtn); });
+      });
+    });
   }
 
   // ---- "Pay Here": redirects to a Stripe-hosted Checkout page created by
