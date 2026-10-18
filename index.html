@@ -539,7 +539,6 @@
           </div>
           <div class="totals-box">
             <div class="totals-row"><span>Subtotal</span><b id="j-subtotal">$0</b></div>
-            <div class="totals-row"><span>Processing fee %</span><input id="j-tax" type="number" min="0" step="0.01" value="0"><b id="j-tax-amt">$0</b></div>
             <div class="totals-row grand"><span>Total</span><b id="j-total">$0</b></div>
           </div>
         </div>
@@ -701,7 +700,6 @@
         <div class="field"><label for="p-phone">Phone</label><input id="p-phone" type="text" placeholder="(770) 555-0134"></div>
         <div class="field"><label for="p-email">Email</label><input id="p-email" type="email" placeholder="hello@ckpressurewashing.com"></div>
         <div class="field"><label for="p-address">Address</label><input id="p-address" type="text" placeholder="Dallas, GA"></div>
-        <div class="field"><label for="p-tax">Default Processing Fee (%)</label><input id="p-tax" type="number" min="0" step="0.01" placeholder="0"></div>
         <div class="field"><label for="p-interval">Re-service Reminder (months)</label><input id="p-interval" type="number" min="0" step="1" placeholder="12"></div>
         <div class="field"><label for="p-mileage">Mileage Rate ($/mile)</label><input id="p-mileage" type="number" min="0" step="0.001" placeholder="Current IRS standard rate"></div>
         <div class="field span-2"><label for="p-review">Google Review Link</label><input id="p-review" type="url" placeholder="https://g.page/r/…/review"></div>
@@ -1328,7 +1326,9 @@
     var items = getInvoiceItems(job);
     var subtotal = items.reduce(function(s,li){ return s + Number(li.quantity)*Number(li.unit_price); }, 0);
     // Without line items the stored price already includes any fee, so do not add it a second time.
-    var taxRate = hasLines ? Number(job.tax_rate || 0) : 0;
+    // Processing fees are now added automatically from the payment method the
+    // client picks (see renderPublicEstimate), so invoices carry no stored fee.
+    var taxRate = 0;
     var taxAmt = subtotal * (taxRate / 100);
     return { items: items, subtotal: subtotal, taxRate: taxRate, taxAmt: taxAmt, total: subtotal + taxAmt };
   }
@@ -2287,7 +2287,6 @@
       document.getElementById('p-phone').value = profile ? (profile.phone||'') : '';
       document.getElementById('p-email').value = profile ? (profile.email||'') : '';
       document.getElementById('p-address').value = profile ? (profile.address||'') : '';
-      document.getElementById('p-tax').value = profile ? (profile.default_tax_rate||0) : 0;
       document.getElementById('p-interval').value = profile && profile.default_service_interval_months != null ? profile.default_service_interval_months : '';
       document.getElementById('p-mileage').value = profile && profile.mileage_rate != null ? profile.mileage_rate : '';
       document.getElementById('p-review').value = profile ? (profile.review_link||'') : '';
@@ -2554,13 +2553,9 @@
       row.querySelector('.li-amount').textContent = fmtMoneyX(amt);
       subtotal += amt;
     });
-    var taxRate = parseFloat(document.getElementById('j-tax').value) || 0;
-    var taxAmt = subtotal * (taxRate / 100);
     document.getElementById('j-subtotal').textContent = fmtMoneyX(subtotal);
-    document.getElementById('j-tax-amt').textContent = fmtMoneyX(taxAmt);
-    document.getElementById('j-total').textContent = fmtMoneyX(subtotal + taxAmt);
+    document.getElementById('j-total').textContent = fmtMoneyX(subtotal);
   }
-  document.getElementById('j-tax').addEventListener('input', updateLineItemsTotal);
   function addLineItemRow(li){
     li = li || { description:'', quantity:1, unit_price:0 };
     var row = document.createElement('div');
@@ -2732,7 +2727,6 @@
     renderLineItemRows([{description:'', quantity:1, unit_price:0}]);
     document.getElementById('j-worker').value = '';
     document.getElementById('j-customer').value = '';
-    document.getElementById('j-tax').value = (currentProfile ? currentProfile.default_tax_rate : (DEMO_PROFILE.default_tax_rate || 0)) || 0;
     if (prefillDate) document.getElementById('j-date').value = prefillDate;
     updateLineItemsTotal();
     updateTextWorkerButtonVisibility();
@@ -2753,7 +2747,6 @@
     document.getElementById('j-status').value = job.status;
     document.getElementById('j-notes').value = job.notes || '';
     document.getElementById('j-worker').value = job.assigned_worker_id || '';
-    document.getElementById('j-tax').value = job.tax_rate || 0;
     var cust = customerForJob(job);
     document.getElementById('j-customer').value = cust ? cust.id : '';
     document.getElementById('j-time').value = job.start_time || '';
@@ -2880,8 +2873,7 @@
       return;
     }
     var subtotal = items.reduce(function(s, li){ return s + Number(li.quantity)*Number(li.unit_price); }, 0);
-    var taxRate = parseFloat(document.getElementById('j-tax').value) || 0;
-    var total = subtotal + subtotal * (taxRate/100);
+    var total = subtotal;
     var workerVal = document.getElementById('j-worker').value;
 
     jobSaving.hidden = false;
@@ -2926,7 +2918,7 @@
         address: clientAddress,
         service_type: document.getElementById('j-service').value,
         price: total,
-        tax_rate: taxRate,
+        tax_rate: 0,
         assigned_worker_id: workerVal || null,
         job_date: document.getElementById('j-date').value,
         start_time: document.getElementById('j-time').value || null,
@@ -3451,7 +3443,6 @@
         phone: document.getElementById('p-phone').value.trim(),
         email: document.getElementById('p-email').value.trim(),
         address: document.getElementById('p-address').value.trim(),
-        default_tax_rate: parseFloat(document.getElementById('p-tax').value) || 0,
         default_service_interval_months: document.getElementById('p-interval').value === ''
           ? null : (parseInt(document.getElementById('p-interval').value, 10) || null),
         mileage_rate: document.getElementById('p-mileage').value === ''

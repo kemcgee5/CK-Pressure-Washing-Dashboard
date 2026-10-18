@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
     const subtotal = (job.line_items || []).reduce(
       (sum, li) => sum + Number(li.quantity) * Number(li.unit_price), 0
     );
-    const total = subtotal * (1 + (Number(job.tax_rate) || 0) / 100);
+    const total = subtotal; // no stored fee; the card fee is added below
     let received = 0;
     if (job.status === 'paid') {
       received = (job.amount_paid != null && job.amount_paid !== '') ? Number(job.amount_paid) : total;
