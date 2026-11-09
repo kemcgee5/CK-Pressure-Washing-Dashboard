@@ -355,6 +355,20 @@
   .pay-alt{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-2); }
   .pay-alt .pay-alt-title{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:8px; font-weight:700; }
   .pay-alt-row{ display:flex; justify-content:space-between; gap:12px; padding:4px 0; }
+  .offer-dates{ grid-column:1/-1; padding:12px 14px; border:1px dashed var(--line-strong); border-radius:10px; background:#FAFBFC; }
+  .offer-dates .od-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:6px; }
+  .offer-dates input[type=date]{ max-width:180px; }
+  .od-chips{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .od-chip{ display:inline-flex; align-items:center; gap:6px; padding:5px 6px 5px 11px; border-radius:999px; background:var(--water); color:#fff; font-size:13px; font-weight:500; }
+  .od-chip button{ border:0; background:rgba(255,255,255,.22); color:#fff; width:20px; height:20px; border-radius:50%; cursor:pointer; line-height:1; font-size:14px; }
+  .date-pick{ margin-top:24px; padding:18px; border-radius:12px; background:#FAFBFC; border:1px solid var(--line); }
+  .date-pick h4{ margin:0 0 4px; font-family:var(--head); font-size:17px; text-transform:uppercase; letter-spacing:.03em; }
+  .date-pick p{ margin:0 0 12px; font-size:13px; color:var(--muted); }
+  .date-pick .dp-opts{ display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+  .date-pick .dp-opt{ display:flex; align-items:center; gap:10px; padding:12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; cursor:pointer; font-size:14.5px; font-weight:500; }
+  .date-pick .dp-opt:has(input:checked){ border-color:var(--water); box-shadow:0 0 0 3px rgba(20,48,95,.10); }
+  .date-pick .dp-opt input{ accent-color:var(--water); width:18px; height:18px; }
+  .date-pick .dp-confirm{ margin-top:14px; }
   .pay-opts{ display:grid; gap:10px; }
   .pay-opt{ display:flex; align-items:center; gap:12px; padding:13px 14px; border:1.5px solid var(--line); border-radius:10px; background:#fff; cursor:pointer; }
   .pay-opt:hover{ border-color:var(--sun); }
@@ -513,6 +527,13 @@
         </div>
         <div class="field"><label for="j-date">Date</label><input id="j-date" type="date" required></div>
         <div class="field"><label for="j-time">Start Time</label><input id="j-time" type="time"></div>
+        <div class="offer-dates" id="offer-dates">
+          <label for="od-input" style="font-weight:600;">Available dates to offer the client</label>
+          <p class="form-hint" style="margin-top:2px;">The client picks one of these on their estimate (after they accept) or on their invoice once the job is Scheduled. Their pick becomes the job date.</p>
+          <div class="od-row"><input type="date" id="od-input"><button type="button" class="btn-add small" id="od-add">+ Add date</button></div>
+          <div class="od-chips" id="od-chips"></div>
+          <p class="form-hint" id="od-chosen" hidden style="margin-top:8px;"></p>
+        </div>
         <div class="field"><label for="j-duration">Duration (min)</label><input id="j-duration" type="number" min="0" step="15" placeholder="90"></div>
         <div class="field">
           <label for="j-status">Status</label>
@@ -2337,6 +2358,7 @@
       var expensesQ = supabaseClient.from('expenses').select('*').order('expense_date', {ascending:false});
       var mileageQ = supabaseClient.from('mileage_logs').select('*').order('log_date', {ascending:false});
       var complianceQ = supabaseClient.from('compliance_items').select('*').order('due_date', {ascending:true});
+      var offeredQ = supabaseClient.from('job_offered_dates').select('job_id, offered_date').order('offered_date', {ascending:true});
       if (currentTenantId != null){
         jobsQ = jobsQ.eq('tenant_id', currentTenantId);
         leadsQ = leadsQ.eq('tenant_id', currentTenantId);
@@ -2348,6 +2370,7 @@
         expensesQ = expensesQ.eq('tenant_id', currentTenantId);
         mileageQ = mileageQ.eq('tenant_id', currentTenantId);
         complianceQ = complianceQ.eq('tenant_id', currentTenantId);
+        offeredQ = offeredQ.eq('tenant_id', currentTenantId);
       }
       var jobsRes = await jobsQ;
       var leadsRes = await leadsQ;
@@ -2359,8 +2382,9 @@
       var expensesRes = await expensesQ;
       var mileageRes = await mileageQ;
       var complianceRes = await complianceQ;
+      var offeredRes = await offeredQ;
       var firstError = jobsRes.error||leadsRes.error||photosRes.error||lineItemsRes.error||profileRes.error||
-        workersRes.error||customersRes.error||expensesRes.error||mileageRes.error||complianceRes.error;
+        workersRes.error||customersRes.error||expensesRes.error||mileageRes.error||complianceRes.error||offeredRes.error;
       if (firstError){
         console.error('Supabase error:', firstError.message);
         return null;
@@ -2369,8 +2393,10 @@
       (photosRes.data||[]).forEach(function(p){ (photosByJob[p.job_id] = photosByJob[p.job_id] || []).push(p); });
       var lineItemsByJob = {};
       (lineItemsRes.data||[]).forEach(function(li){ (lineItemsByJob[li.job_id] = lineItemsByJob[li.job_id] || []).push(li); });
+      var offeredByJob = {};
+      (offeredRes.data||[]).forEach(function(o){ (offeredByJob[o.job_id] = offeredByJob[o.job_id] || []).push(o.offered_date); });
       var jobs = (jobsRes.data||[]).map(function(j){
-        return Object.assign({}, j, {photos: photosByJob[j.id] || [], line_items: lineItemsByJob[j.id] || []});
+        return Object.assign({}, j, {photos: photosByJob[j.id] || [], line_items: lineItemsByJob[j.id] || [], offered_dates: offeredByJob[j.id] || []});
       });
       return {
         jobs: jobs, leads: leadsRes.data || [], profile: profileRes.data || null, workers: workersRes.data || [],
@@ -2742,6 +2768,7 @@
     document.getElementById('job-form-title').textContent = 'Add Job';
     jobForm.querySelector('.btn-save').textContent = 'Save Job';
     renderExistingPhotos(null);
+    setOfferedDates([], null);
     renderLineItemRows([{description:'', quantity:1, unit_price:0}]);
     document.getElementById('j-worker').value = '';
     document.getElementById('j-customer').value = '';
@@ -2751,6 +2778,41 @@
     updateLaborCost();
     document.getElementById('j-client').focus();
   }
+  // ---- Dates offered to the client ----
+  var offeredDates = [];
+  var originalOfferedDates = [];
+  function longDate(s){
+    return new Date(s + 'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  }
+  function renderOfferedDates(){
+    var el = document.getElementById('od-chips');
+    el.innerHTML = offeredDates.map(function(d, i){
+      return '<span class="od-chip">'+esc(longDate(d))+'<button type="button" data-od-remove="'+i+'" title="Remove">&times;</button></span>';
+    }).join('');
+  }
+  function setOfferedDates(list, job){
+    offeredDates = (list || []).slice().sort();
+    originalOfferedDates = offeredDates.slice();
+    renderOfferedDates();
+    var note = document.getElementById('od-chosen');
+    if (job && job.date_chosen_at){
+      note.textContent = 'The client picked ' + longDate(job.job_date) + ' (' + new Date(job.date_chosen_at).toLocaleString('en-US', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) + '). Changing the offered dates lets them pick again.';
+      note.hidden = false;
+    } else { note.hidden = true; }
+  }
+  document.getElementById('od-add').addEventListener('click', function(){
+    var inp = document.getElementById('od-input');
+    if (!inp.value) return;
+    if (offeredDates.indexOf(inp.value) === -1){ offeredDates.push(inp.value); offeredDates.sort(); }
+    inp.value = '';
+    renderOfferedDates();
+  });
+  document.getElementById('od-chips').addEventListener('click', function(e){
+    var b = e.target.closest('[data-od-remove]');
+    if (!b) return;
+    offeredDates.splice(parseInt(b.getAttribute('data-od-remove'), 10), 1);
+    renderOfferedDates();
+  });
   function openJobFormForEdit(job){
     editingJobId = job.id;
     pendingLeadId = null;
@@ -2774,6 +2836,7 @@
     document.getElementById('j-payment-method').value = job.payment_method || '';
     document.getElementById('j-amount-paid').value = job.amount_paid != null ? job.amount_paid : '';
     renderLineItemRows(getInvoiceItems(job));
+    setOfferedDates(job.offered_dates, job);
     updateLineItemsTotal();
     updateTextWorkerButtonVisibility();
     updateLaborCost();
@@ -2781,6 +2844,7 @@
   }
   function closeJobForm(){
     jobForm.hidden = true; jobForm.reset(); jobBtn.hidden = false; jobError.hidden = true;
+    setOfferedDates([], null);
     editingJobId = null;
     pendingLeadId = null;
     document.getElementById('lead-convert-hint').hidden = true;
@@ -2954,6 +3018,10 @@
         notes: document.getElementById('j-notes').value.trim()
       };
 
+      // Changing the offered dates re-opens the client's choice.
+      var offeredChanged = JSON.stringify(offeredDates) !== JSON.stringify(originalOfferedDates);
+      if (offeredChanged && offeredDates.length) jobFields.date_chosen_at = null;
+
       var jobId;
       if (editingJobId != null){
         var updRes = await supabaseClient.from('jobs').update(jobFields).eq('id', editingJobId).select().single();
@@ -2972,6 +3040,17 @@
       });
       var liRes = await supabaseClient.from('job_line_items').insert(lineRows);
       if (liRes.error) throw new Error(liRes.error.message);
+
+      if (offeredChanged){
+        var odDel = await supabaseClient.from('job_offered_dates').delete().eq('job_id', jobId);
+        if (odDel.error) throw new Error(odDel.error.message);
+        if (offeredDates.length){
+          var odIns = await supabaseClient.from('job_offered_dates').insert(offeredDates.map(function(d){
+            return { tenant_id: currentTenantId, job_id: jobId, offered_date: d };
+          }));
+          if (odIns.error) throw new Error(odIns.error.message);
+        }
+      }
 
       // Multiple files can be selected per input — upload and record each one.
       // This only ever adds photos; removing one already saved happens via the
@@ -3225,7 +3304,7 @@
     } else if (job.client_response === 'accepted'){
       actionOrBanner = '<div class="estimate-response-banner accepted">You accepted this estimate' +
         (job.client_responded_at ? ' on '+fmtDate(String(job.client_responded_at).slice(0,10)) : '') +
-        '. We\'ll be in touch to get it scheduled!</div>';
+        (((job.offered_dates || []).length && !job.date_chosen_at) ? '. Please pick the date that works best for you below.' : '. We\'ll be in touch to get it scheduled!') + '</div>';
     } else if (job.client_response === 'declined'){
       actionOrBanner = '<div class="estimate-response-banner declined">You declined this estimate' +
         (job.client_responded_at ? ' on '+fmtDate(String(job.client_responded_at).slice(0,10)) : '') +
@@ -3234,6 +3313,25 @@
       actionOrBanner = '<div class="estimate-response-banner neutral">This estimate has already been handled — please contact us if you have any questions.</div>';
     } else {
       actionOrBanner = '';
+    }
+
+    // Service date: once the job is Scheduled (including right after the client
+    // accepts an estimate) show the dates the owner offered, or the confirmed one.
+    var offered = job.offered_dates || [];
+    var datePickHtml = '';
+    if (job.status === 'scheduled'){
+      if (job.date_chosen_at){
+        datePickHtml = '<div class="estimate-response-banner accepted">Your service date: <b>'+esc(longDate(job.job_date))+'</b>.' +
+          (profile.phone ? ' Need to change it? Call us at '+esc(profile.phone)+'.' : ' Need to change it? Just contact us.') + '</div>';
+      } else if (offered.length){
+        datePickHtml = '<div class="date-pick no-print"><h4>Choose your service date</h4><p>Pick the day that works best for you:</p>' +
+          '<div class="dp-opts" role="radiogroup" aria-label="Service date">' +
+          offered.map(function(d){
+            return '<label class="dp-opt"><input type="radio" name="service-date" value="'+esc(d)+'"><span>'+esc(longDate(d))+'</span></label>';
+          }).join('') +
+          '</div><button type="button" class="btn-accept dp-confirm" id="date-confirm" disabled>Confirm this date</button>' +
+          '<div class="pay-status" id="date-status" hidden></div></div>';
+      }
     }
 
     var received = amountReceived(job);
@@ -3289,6 +3387,7 @@
       paidRowHtml + balanceRowHtml +
       photosHtml +
       actionOrBanner +
+      datePickHtml +
       payBoxHtml;
 
     var acceptBtn = document.getElementById('estimate-accept');
@@ -3298,6 +3397,27 @@
     }
     if (declineBtn){
       declineBtn.addEventListener('click', function(){ respondToEstimate(token, 'declined', acceptBtn, declineBtn); });
+    }
+    var dateConfirm = document.getElementById('date-confirm');
+    if (dateConfirm){
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="service-date"]'), function(r){
+        r.addEventListener('change', function(){ dateConfirm.disabled = false; });
+      });
+      dateConfirm.addEventListener('click', async function(){
+        var chosen = document.querySelector('input[name="service-date"]:checked');
+        if (!chosen) return;
+        dateConfirm.disabled = true; dateConfirm.textContent = 'Saving…';
+        var res = await supabaseClient.rpc('choose_service_date', { p_token: token, p_date: chosen.value });
+        if (res.error){
+          window.alert(res.error.message || 'Could not save your date — please try again or contact us.');
+          dateConfirm.disabled = false; dateConfirm.textContent = 'Confirm this date';
+          var fresh0 = await supabaseClient.rpc('get_estimate_by_token', { p_token: token });
+          if (fresh0.data) renderPublicEstimate(token, fresh0.data);
+          return;
+        }
+        var fresh = await supabaseClient.rpc('get_estimate_by_token', { p_token: token });
+        if (fresh.data) renderPublicEstimate(token, fresh.data);
+      });
     }
     var payDetail = document.getElementById('pay-detail');
     Array.prototype.forEach.call(document.querySelectorAll('input[name="pay-method"]'), function(radio){
