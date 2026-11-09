@@ -1100,6 +1100,8 @@
 
   // ---- Date helpers ----
   function todayYmd(){ return ymd(new Date()); }
+  // Local calendar day of a database timestamp (slicing the UTC string shows tomorrow's date in the evening).
+  function tsYmd(ts){ return ymd(new Date(ts)); }
   function parseYmd(s){ return s ? new Date(s + 'T00:00:00') : null; }
   function dayOffset(n){ var d = new Date(); d.setDate(d.getDate() + n); return ymd(d); }
   function monthOffset(n){ var d = new Date(); d.setMonth(d.getMonth() + n); return ymd(d); }
@@ -1917,8 +1919,8 @@
       var cust = customerForJob(j);
       items.push({
         cls: 'bad',
-        text: esc(j.client_name) + ' picked ' + esc(longDate(j.job_date)) + ' — confirm the schedule',
-        sub: esc(j.address) + ' · picked ' + fmtDateSmart(String(j.date_chosen_at).slice(0,10)),
+        text: esc(j.client_name) + ' chose ' + esc(longDate(j.job_date)) + ' for their service — confirm the schedule',
+        sub: esc(j.address) + ' · chosen on ' + fmtDateSmart(tsYmd(j.date_chosen_at)),
         action: (cust && cust.email ? '<button class="icon-btn" type="button" data-action="date-email" data-id="'+j.id+'">Email</button> ' : '') +
                 '<button class="icon-btn" type="button" data-action="schedule-job" data-id="'+j.id+'">Schedule</button> ' +
                 '<button class="icon-btn primary" type="button" data-action="date-confirm" data-id="'+j.id+'">Confirmed</button>',
@@ -1935,7 +1937,7 @@
       items.push({
         cls: 'warn',
         text: esc(j.client_name) + ' accepted their estimate — add to the schedule',
-        sub: esc(j.address) + (j.client_responded_at ? ' · accepted ' + fmtDateSmart(String(j.client_responded_at).slice(0,10)) : ''),
+        sub: esc(j.address) + (j.client_responded_at ? ' · accepted ' + fmtDateSmart(tsYmd(j.client_responded_at)) : ''),
         action: '<button class="icon-btn" type="button" data-action="schedule-job" data-id="'+j.id+'">Schedule</button>',
         sort: 900
       });
@@ -3166,7 +3168,7 @@
         : '') +
       '<div class="invoice-status-row"><span>Status</span><span class="chip '+job.status+'">'+STATUS_LABEL[job.status]+'</span></div>' +
       (job.client_response
-        ? '<div class="invoice-status-row"><span>Client Response</span><span><b>'+(job.client_response === 'accepted' ? 'Accepted' : 'Declined')+'</b>'+(job.client_responded_at ? ' ('+fmtDate(String(job.client_responded_at).slice(0,10))+')' : '')+'</span></div>'
+        ? '<div class="invoice-status-row"><span>Client Response</span><span><b>'+(job.client_response === 'accepted' ? 'Accepted' : 'Declined')+'</b>'+(job.client_responded_at ? ' ('+fmtDate(tsYmd(job.client_responded_at))+')' : '')+'</span></div>'
         : '') +
       photosHtml +
       '<div class="invoice-actions no-print">' +
@@ -3323,11 +3325,11 @@
         '</div>';
     } else if (job.client_response === 'accepted'){
       actionOrBanner = '<div class="estimate-response-banner accepted">You accepted this estimate' +
-        (job.client_responded_at ? ' on '+fmtDate(String(job.client_responded_at).slice(0,10)) : '') +
+        (job.client_responded_at ? ' on '+fmtDate(tsYmd(job.client_responded_at)) : '') +
         (((job.offered_dates || []).length && !job.date_chosen_at) ? '. Please pick the date that works best for you below.' : '. We\'ll be in touch to get it scheduled!') + '</div>';
     } else if (job.client_response === 'declined'){
       actionOrBanner = '<div class="estimate-response-banner declined">You declined this estimate' +
-        (job.client_responded_at ? ' on '+fmtDate(String(job.client_responded_at).slice(0,10)) : '') +
+        (job.client_responded_at ? ' on '+fmtDate(tsYmd(job.client_responded_at)) : '') +
         '. If you change your mind, just give us a call.</div>';
     } else if (isEstimate){
       actionOrBanner = '<div class="estimate-response-banner neutral">This estimate has already been handled — please contact us if you have any questions.</div>';
