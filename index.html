@@ -139,6 +139,7 @@
   .alert-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
   .alert-list li{ display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid #F0F1F3; }
   .alert-list li:last-child{ border-bottom:none; }
+  .tab-badge{ margin-left:auto; min-width:20px; height:20px; padding:0 6px; border-radius:10px; background:var(--critical); color:#fff; font-size:11px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
   .alert-dot{ width:8px; height:8px; border-radius:50%; margin-top:6px; flex-shrink:0; }
   .alert-dot.warn{ background:var(--gold-d); }
   .alert-dot.bad{ background:var(--critical); }
@@ -458,7 +459,7 @@
       <div class="brand-name" id="brand-name" hidden>CK Pressure Washing</div>
     </div>
     <nav class="tabs" id="tabs">
-    <button class="tab-btn active" type="button" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
+    <button class="tab-btn active" type="button" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span><span class="tab-badge" id="home-badge" hidden>0</span></button>
     <button class="tab-btn" type="button" data-tab="schedule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>Schedule</span></button>
     <button class="tab-btn" type="button" data-tab="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.6"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 4.9"/></svg><span>Customers</span></button>
     <button class="tab-btn" type="button" data-tab="invoices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h6"/></svg><span>Invoices</span></button>
@@ -1909,8 +1910,27 @@
       });
     });
 
+    // A client picked one of the dates you offered — top of the list until
+    // you've confirmed the schedule with them.
+    var pendingPicks = (currentJobs||[]).filter(function(j){ return j.date_chosen_at && !j.date_confirmed_at; });
+    pendingPicks.forEach(function(j){
+      var cust = customerForJob(j);
+      items.push({
+        cls: 'bad',
+        text: esc(j.client_name) + ' picked ' + esc(longDate(j.job_date)) + ' — confirm the schedule',
+        sub: esc(j.address) + ' · picked ' + fmtDateSmart(String(j.date_chosen_at).slice(0,10)),
+        action: (cust && cust.email ? '<button class="icon-btn" type="button" data-action="date-email" data-id="'+j.id+'">Email</button> ' : '') +
+                '<button class="icon-btn" type="button" data-action="schedule-job" data-id="'+j.id+'">Schedule</button> ' +
+                '<button class="icon-btn primary" type="button" data-action="date-confirm" data-id="'+j.id+'">Confirmed</button>',
+        sort: 2000
+      });
+    });
+    var homeBadge = document.getElementById('home-badge');
+    if (homeBadge){ homeBadge.textContent = pendingPicks.length; homeBadge.hidden = !pendingPicks.length; }
+
     (currentJobs||[]).forEach(function(j){
       if (j.client_response !== 'accepted') return;
+      if (j.date_chosen_at && !j.date_confirmed_at) return; // covered by the date-pick alert above
       if (j.assigned_worker_id && j.start_time) return; // already put on the calendar
       items.push({
         cls: 'warn',
@@ -3020,7 +3040,7 @@
 
       // Changing the offered dates re-opens the client's choice.
       var offeredChanged = JSON.stringify(offeredDates) !== JSON.stringify(originalOfferedDates);
-      if (offeredChanged && offeredDates.length) jobFields.date_chosen_at = null;
+      if (offeredChanged && offeredDates.length){ jobFields.date_chosen_at = null; jobFields.date_confirmed_at = null; }
 
       var jobId;
       if (editingJobId != null){
@@ -4034,6 +4054,40 @@
     }
   }
 
+  // ---- Client picked a service date: confirm it / email them ----
+  async function handleDateConfirm(jobId, btn){
+    var job = currentJobs.find(function(j){ return String(j.id) === String(jobId); });
+    if (!job) return;
+    btn.disabled = true;
+    if (isLive){
+      var res = await supabaseClient.from('jobs').update({date_confirmed_at: new Date().toISOString()}).eq('id', job.id);
+      if (res.error){ window.alert('Could not save: ' + res.error.message); btn.disabled = false; return; }
+    }
+    job.date_confirmed_at = new Date().toISOString();
+    renderAlerts();
+  }
+  function handleDateEmail(jobId){
+    var job = currentJobs.find(function(j){ return String(j.id) === String(jobId); });
+    if (!job) return;
+    var cust = customerForJob(job);
+    var biz = (currentProfile && currentProfile.business_name) || 'CK Pressure Washing';
+    var phone = currentProfile && currentProfile.phone;
+    var body = [
+      'Hi ' + (job.client_name || '').split(' ')[0] + ',',
+      '',
+      'Thanks for choosing a date! You\'re confirmed for ' + longDate(job.job_date) +
+        (job.start_time ? ' at ' + fmtTime(job.start_time) : '') + ' at ' + job.address + '.',
+      '',
+      'If anything changes' + (phone ? ', call or text us at ' + phone : ', just reply to this email') + '.',
+      '',
+      'Thanks!',
+      biz
+    ].join('\n');
+    window.location.href = 'mailto:' + ((cust && cust.email) || '') +
+      '?subject=' + encodeURIComponent('Your service is confirmed — ' + longDate(job.job_date)) +
+      '&body=' + encodeURIComponent(body);
+  }
+
   // ---- Home alerts + aging tables share these actions ----
   function wireSharedActions(container){
     container.addEventListener('click', function(e){
@@ -4048,6 +4102,8 @@
         var job = currentJobs.find(function(jj){ return String(jj.id) === String(btn.dataset.id); });
         if (job) goToJobInHome(job);
       }
+      if (action === 'date-confirm') handleDateConfirm(btn.dataset.id, btn);
+      if (action === 'date-email') handleDateEmail(btn.dataset.id);
     });
   }
   wireSharedActions(document.getElementById('alert-list'));
