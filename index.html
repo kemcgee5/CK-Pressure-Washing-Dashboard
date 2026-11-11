@@ -3173,6 +3173,7 @@
       photosHtml +
       '<div class="invoice-actions no-print">' +
         '<button type="button" class="btn-cancel" id="invoice-close">Close</button>' +
+        (job.public_token ? '<button type="button" class="btn-add" id="invoice-pdf">PDF</button>' : '') +
         '<button type="button" class="btn-add" id="invoice-print">Print</button>' +
         '<button type="button" class="btn-save" id="invoice-email">Email</button>' +
         (hasOnlineLink(job, isEstimate)
@@ -3183,6 +3184,10 @@
     document.getElementById('invoice-overlay').hidden = false;
     document.getElementById('invoice-close').addEventListener('click', closeInvoice);
     document.getElementById('invoice-print').addEventListener('click', function(){ window.print(); });
+    var pdfBtn = document.getElementById('invoice-pdf');
+    if (pdfBtn){
+      pdfBtn.addEventListener('click', function(){ window.open(invoicePdfUrl(job), '_blank'); });
+    }
     document.getElementById('invoice-email').addEventListener('click', function(){
       emailInvoice(job, isEstimate, totals, bizName);
     });
@@ -3201,6 +3206,12 @@
     if (!job.public_token) return false;
     if (job.status === 'quoted') return true;
     return !isEstimate && jobBalanceDue(job) > 0;
+  }
+  // Small, photo-free PDF made on demand by /api/invoice-pdf. Opens on phones
+  // and desktops, and is shared as a link instead of a (too-big) attachment.
+  function invoicePdfUrl(job, download){
+    if (!job.public_token) return '';
+    return window.location.origin + '/api/invoice-pdf?token=' + job.public_token + (download ? '&download=1' : '');
   }
   function publicEstimateUrl(job){
     if (!job.public_token) return '';
@@ -3222,13 +3233,14 @@
   }
 
   // Opens the customer's email client with the invoice/estimate summary filled
-  // in. There's no server here to attach a PDF automatically, so the flow is:
-  // Print > Save as PDF, then Email > attach that PDF in the message that opens.
+  // in. Instead of attaching a PDF (which can be too large), the message
+  // includes a link to a small PDF that opens on any phone or computer.
   function emailInvoice(job, isEstimate, totals, bizName){
     var customer = customerForJob(job);
     var toEmail = (customer && customer.email) ? customer.email.trim() : '';
-    var docWord = isEstimate ? 'estimate' : 'invoice';
-    var subject = (isEstimate ? 'Estimate' : 'Invoice') + ' #' + job.id + ' from ' + bizName;
+    var isPaidDoc = !isEstimate && job.status === 'paid' && jobBalanceDue(job) <= 0;
+    var docWord = isEstimate ? 'estimate' : (isPaidDoc ? 'receipt' : 'invoice');
+    var subject = (isEstimate ? 'Estimate' : (isPaidDoc ? 'Receipt' : 'Invoice')) + ' #' + job.id + ' from ' + bizName;
     var bodyLines = [
       'Hi ' + (job.client_name || 'there') + ',',
       '',
@@ -3246,6 +3258,13 @@
         isEstimate ? 'You can review this estimate and accept or decline it right online:'
                    : 'You can view this invoice and pay it online here:',
         publicEstimateUrl(job)
+      );
+    }
+    if (job.public_token){
+      bodyLines.push(
+        '',
+        (isPaidDoc ? 'Thank you for your payment! Download your receipt (PDF):' : 'Download a PDF copy:'),
+        invoicePdfUrl(job, true)
       );
     }
     bodyLines.push(
@@ -3410,7 +3429,10 @@
       photosHtml +
       actionOrBanner +
       datePickHtml +
-      payBoxHtml;
+      payBoxHtml +
+      '<div class="no-print" style="text-align:center;margin:18px 0 4px;"><a class="btn-add" style="display:inline-block;text-decoration:none;" href="'+invoicePdfUrl({ public_token: token }, true)+'">' +
+        (job.status === 'quoted' || job.status === 'declined' ? 'Download Estimate (PDF)' : (balance <= 0 && received > 0 ? 'Download Receipt (PDF)' : 'Download Invoice (PDF)')) +
+      '</a></div>';
 
     var acceptBtn = document.getElementById('estimate-accept');
     var declineBtn = document.getElementById('estimate-decline');
