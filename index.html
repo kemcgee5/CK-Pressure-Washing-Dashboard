@@ -892,6 +892,7 @@
         <div class="field"><label for="e-job">Job (optional)</label><select id="e-job"><option value="">General overhead</option></select></div>
         <div class="field span-2"><label for="e-vendor">Vendor</label><input id="e-vendor" type="text" placeholder="Home Depot, Shell…"></div>
         <div class="field span-2"><label for="e-notes">Notes</label><input id="e-notes" type="text" placeholder="Optional"></div>
+        <div class="field span-2"><label for="e-receipt">Receipt (photo or PDF)</label><input id="e-receipt" type="file" accept="image/*,application/pdf"><small id="e-receipt-current" class="addr-sub" hidden></small></div>
         <div class="form-actions">
           <button type="submit" class="btn-save">Save Expense</button>
           <button type="button" id="exp-cancel" class="btn-cancel">Cancel</button>
@@ -1058,6 +1059,7 @@
   var SUPABASE_URL = 'https://uanghzuketepjencbebw.supabase.co';
   var SUPABASE_ANON_KEY = 'sb_publishable_kx-z6hgtOSgXEl6wzBm3kg_NJqfnZQI';
   var PHOTO_BUCKET = 'job-photos';
+  var RECEIPT_BUCKET = 'ck-receipts'; // private: receipts are only reachable by signed-in members
   // This is the tenant row (see the "tenants" table) this deployed page belongs to.
   // Every read/write this page makes is scoped to this tenant once someone signs in.
   var TENANT_SLUG = 'ck-pressure-washing';
@@ -1698,8 +1700,12 @@
         ? '<div class="actions-cell"><button class="icon-btn" type="button" data-action="exp-edit" data-id="'+x.id+'">Edit</button>' +
           '<button class="icon-btn danger" type="button" data-action="exp-delete" data-id="'+x.id+'">Delete</button></div>'
         : '';
+      var rcpt = x.receipt_path
+        ? '<button class="icon-btn" type="button" data-action="exp-receipt" data-id="'+x.id+'">Receipt</button>'
+        : '';
+      if (isLive && rcpt) actions = actions.replace('<div class="actions-cell">', '<div class="actions-cell">' + rcpt);
       return '<tr><td class="dt">'+fmtDate(x.expense_date)+'</td>' +
-        '<td>'+esc(x.category)+(x.notes ? '<div class="addr-sub">'+esc(x.notes)+'</div>' : '')+'</td>' +
+        '<td>'+esc(x.category)+(x.notes ? '<div class="addr-sub">'+esc(x.notes)+'</div>' : '')+(isLive && !x.receipt_path ? '<div class="addr-sub" style="color:var(--muted);">No receipt on file</div>' : '')+'</td>' +
         '<td class="sub">'+esc(x.vendor||'—')+'</td>' +
         '<td class="sub">'+(job ? esc(job.client_name) : 'Overhead')+'</td>' +
         '<td class="num">'+fmtMoney2(x.amount)+'</td>' +
@@ -3835,9 +3841,39 @@
   var expForm = document.getElementById('exp-form');
   var expBtn = document.getElementById('exp-add-btn');
   var expError = document.getElementById('exp-error');
+  // Shrinks big phone photos before upload (receipts stay readable at ~1800px)
+  // so storage stays small and uploads are fast on cellular. PDFs pass through.
+  function shrinkImage(file){
+    return new Promise(function(resolve){
+      if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 600 * 1024){ resolve(file); return; }
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function(){
+        var max = 1800, scale = Math.min(1, max / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function(blob){
+          URL.revokeObjectURL(url);
+          resolve(blob && blob.size < file.size ? new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }) : file);
+        }, 'image/jpeg', 0.82);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+  async function uploadReceipt(file){
+    var f = await shrinkImage(file);
+    var ext = ((f.name.split('.').pop() || 'jpg').toLowerCase()).replace(/[^a-z0-9]/g, '') || 'jpg';
+    var path = currentTenantId + '/' + new Date().getFullYear() + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+    var up = await supabaseClient.storage.from(RECEIPT_BUCKET).upload(path, f, { contentType: f.type || undefined });
+    if (up.error) throw new Error('Receipt upload failed: ' + up.error.message);
+    return path;
+  }
   function closeExpForm(){
     expForm.hidden = true; expForm.reset(); expBtn.hidden = false;
     expError.hidden = true; editingExpenseId = null;
+    document.getElementById('e-receipt-current').hidden = true;
     document.getElementById('exp-form-title').textContent = 'Add Expense';
   }
   expBtn.addEventListener('click', function(){
@@ -3859,10 +3895,24 @@
       vendor: document.getElementById('e-vendor').value.trim() || null,
       notes: document.getElementById('e-notes').value.trim() || null
     };
+    var rFile = document.getElementById('e-receipt').files[0];
+    var oldExp = editingExpenseId != null ? (currentExpenses||[]).find(function(i){ return String(i.id) === String(editingExpenseId); }) : null;
+    var saveBtn = expForm.querySelector('.btn-save');
+    if (rFile){
+      saveBtn.disabled = true; saveBtn.textContent = 'Uploading receipt…';
+      try { fields.receipt_path = await uploadReceipt(rFile); }
+      catch (err){ expError.textContent = err.message; expError.hidden = false; saveBtn.disabled = false; saveBtn.textContent = 'Save Expense'; return; }
+    }
     var res = editingExpenseId != null
       ? await supabaseClient.from('expenses').update(fields).eq('id', editingExpenseId)
       : await supabaseClient.from('expenses').insert(fields);
-    if (res.error){ expError.textContent = 'Could not save: ' + res.error.message; expError.hidden = false; return; }
+    saveBtn.disabled = false; saveBtn.textContent = 'Save Expense';
+    if (res.error){
+      if (fields.receipt_path) supabaseClient.storage.from(RECEIPT_BUCKET).remove([fields.receipt_path]);
+      expError.textContent = 'Could not save: ' + res.error.message; expError.hidden = false; return;
+    }
+    // Replaced receipt: clear out the old file so nothing is orphaned.
+    if (fields.receipt_path && oldExp && oldExp.receipt_path) supabaseClient.storage.from(RECEIPT_BUCKET).remove([oldExp.receipt_path]);
     closeExpForm();
     render();
   });
@@ -3882,12 +3932,23 @@
       document.getElementById('e-job').value = x.job_id || '';
       document.getElementById('e-vendor').value = x.vendor || '';
       document.getElementById('e-notes').value = x.notes || '';
+      var cur = document.getElementById('e-receipt-current');
+      cur.textContent = x.receipt_path ? 'A receipt is already on file. Choose a new file only to replace it.' : '';
+      cur.hidden = !x.receipt_path;
       expForm.scrollIntoView({behavior:'smooth', block:'nearest'});
     }
+    if (btn.dataset.action === 'exp-receipt'){
+      var win = window.open('', '_blank'); // opened first so phones don't block the popup
+      var sg = await supabaseClient.storage.from(RECEIPT_BUCKET).createSignedUrl(x.receipt_path, 600);
+      if (sg.error || !sg.data){ if (win) win.close(); alert('Could not open receipt: ' + (sg.error ? sg.error.message : 'not found')); return; }
+      if (win) win.location.href = sg.data.signedUrl; else window.location.href = sg.data.signedUrl;
+      return;
+    }
     if (btn.dataset.action === 'exp-delete'){
-      if (!confirm('Delete this expense?')) return;
+      if (!confirm(x.receipt_path ? 'Delete this expense AND its saved receipt? For audits, you may want to keep it.' : 'Delete this expense?')) return;
       var res = await supabaseClient.from('expenses').delete().eq('id', x.id);
       if (res.error){ alert('Could not delete: ' + res.error.message); return; }
+      if (x.receipt_path) supabaseClient.storage.from(RECEIPT_BUCKET).remove([x.receipt_path]);
       render();
     }
   });
