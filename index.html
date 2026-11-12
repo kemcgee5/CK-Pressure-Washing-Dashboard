@@ -1940,11 +1940,14 @@
       if (j.client_response !== 'accepted') return;
       if (j.date_chosen_at && !j.date_confirmed_at) return; // covered by the date-pick alert above
       if (j.assigned_worker_id && j.start_time) return; // already put on the calendar
+      if (j.alert_dismissed_at) return; // you dismissed it
+      if (j.status === 'completed' || j.status === 'paid' || j.status === 'declined') return; // already done
       items.push({
         cls: 'warn',
         text: esc(j.client_name) + ' accepted their estimate — add to the schedule',
         sub: esc(j.address) + (j.client_responded_at ? ' · accepted ' + fmtDateSmart(tsYmd(j.client_responded_at)) : ''),
-        action: '<button class="icon-btn" type="button" data-action="schedule-job" data-id="'+j.id+'">Schedule</button>',
+        action: '<button class="icon-btn" type="button" data-action="schedule-job" data-id="'+j.id+'">Schedule</button> ' +
+                '<button class="icon-btn" type="button" data-action="alert-dismiss" data-id="'+j.id+'" title="Remove this reminder">Dismiss</button>',
         sort: 900
       });
     });
@@ -1962,14 +1965,15 @@
     });
 
     (currentJobs||[]).forEach(function(j){
-      if (j.status !== 'paid' || j.review_requested_at || j.review_received) return;
+      if (j.status !== 'paid' || j.review_requested_at || j.review_received || j.alert_dismissed_at) return;
       var days = daysSince(j.job_date) || 0;
       if (days > 60) return;
       items.push({
         cls: 'info',
         text: 'Ask ' + esc(j.client_name) + ' for a review',
         sub: 'Paid ' + (j.paid_date ? fmtDateSmart(j.paid_date) : fmtDateSmart(j.job_date)) + ' — reviews are your best marketing',
-        action: '<button class="icon-btn" type="button" data-action="review-copy" data-id="'+j.id+'">Copy Ask</button>',
+        action: '<button class="icon-btn" type="button" data-action="review-copy" data-id="'+j.id+'">Copy Ask</button> ' +
+                '<button class="icon-btn" type="button" data-action="alert-dismiss" data-id="'+j.id+'" title="Remove this reminder">Dismiss</button>',
         sort: 100
       });
     });
@@ -4139,6 +4143,20 @@
     }
   }
 
+  // Removes an alert (accepted-estimate / review reminder) without changing the job.
+  async function handleAlertDismiss(jobId, btn){
+    var job = currentJobs.find(function(j){ return String(j.id) === String(jobId); });
+    if (!job) return;
+    btn.disabled = true;
+    var stamp = new Date().toISOString();
+    if (isLive){
+      var res = await supabaseClient.from('jobs').update({alert_dismissed_at: stamp}).eq('id', job.id);
+      if (res.error){ window.alert('Could not dismiss: ' + res.error.message); btn.disabled = false; return; }
+    }
+    job.alert_dismissed_at = stamp;
+    renderAlerts();
+  }
+
   // ---- Client picked a service date: confirm it / email them ----
   async function handleDateConfirm(jobId, btn){
     var job = currentJobs.find(function(j){ return String(j.id) === String(jobId); });
@@ -4187,6 +4205,7 @@
         var job = currentJobs.find(function(jj){ return String(jj.id) === String(btn.dataset.id); });
         if (job) goToJobInHome(job);
       }
+      if (action === 'alert-dismiss') handleAlertDismiss(btn.dataset.id, btn);
       if (action === 'date-confirm') handleDateConfirm(btn.dataset.id, btn);
       if (action === 'date-email') handleDateEmail(btn.dataset.id);
     });
